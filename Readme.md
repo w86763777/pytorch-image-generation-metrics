@@ -1,10 +1,10 @@
-# Pytorch Implementation of FID Score and Inception Score
+# Pytorch Implementation of Inception Score and FID Score
 
 |                            |Original Implementation|This implementation|
 |----------------------------|-----------------------|-------------------|
-|FID Score (SNGAN on CIFAR10)|14.5675                |14.4361            |
 |Inception Score (SNGAN)     |8.1700 (0.1143)        |8.1858 (0.1140)    |
 |Inception Score (CIFAR10)   |11.2671 (0.2032)       |11.2391 (0.2005)   |
+|FID Score (SNGAN on CIFAR10)|14.5675                |14.4361            |
 
 - Original implementation: [Inception Score](https://github.com/openai/improved-gan), [FID Score](https://github.com/bioinf-jku/TTUR)
 
@@ -15,22 +15,26 @@
 - torchvision 0.5.0
 - tqdm
 - scipy 1.5.0
+- Install requirements
+    ```
+    pip install -r requirements.txt
+    ```
 
 ## Example
 - Prepare Statistics for calculating FID Score
     - [Download](https://github.com/bioinf-jku/TTUR#precalculated-statistics-for-fid-calculation) Precalculated Statistics for your dataset or
     - Calculate statistics for your dataset. See [example](./calc_stats.py)
-    ```
-    # Calculate statistics of CIFAR10
-    # Save stats to ./stats/cifar10_stats.npz
-    python cacl_stats.py --stats_path ./stats/cifar10_stats.npz
-    ```
+        ```
+        # Calculate statistics of CIFAR10
+        # Save stats to ./stats/cifar10_stats.npz
+        python calc_stats.py --stats_path ./stats/cifar10_stats.npz
+        ```
 
 - Calculate Inception Score and FID Score at a time. Both score share same
 Inception v3 outputs so only one forward propagation is needed for each image
     ```
     python calc_score.py \
-        --stats_cache ./stats/cifar10_stats.npz
+        --stats_cache ./stats/cifar10_stats.npz \
         --dir path/to/images
     ```
 
@@ -60,3 +64,8 @@ fid_score = get_fid_score(
 is_score, fid_score = get_inception_and_fid_score(
     imgs, device, stats_cache, verbose=True)
 ```
+
+## TODO
+
+- [ ] Dynamic loading images
+- [ ] Multi-GPU computing
