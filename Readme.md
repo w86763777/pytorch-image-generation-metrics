@@ -11,9 +11,9 @@
 - The port of official implementation of Fréchet Inception Distance is inspired 
 by [pytorch-fid](https://github.com/mseitzer/pytorch-fid)
 
-- The official implementation of Inception Score ignores the bias of fully connect layer in inception v3, that is the most important detail to reimplement it
+- The official implementation of Inception Score ignores the bias of fully connect layer in inception v3, this is the most important detail to reimplement it
 
-- The single output are exactly the same as in official implementation. However, due to the difference of framework implementations, both scores are slightly different from official implementations
+- The single output is exactly the same as in official implementation. However, due to the difference of framework implementations, both scores are slightly different from official implementations
 
 ## Requirements
 - torch 1.4.0
