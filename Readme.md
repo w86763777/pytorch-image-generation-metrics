@@ -1,14 +1,19 @@
 # Pytorch Implementation of Inception Score and FID Score
 
-|                            |Original Implementation|This implementation|
+|                            |Official Implementation|This implementation|
 |----------------------------|-----------------------|-------------------|
 |Inception Score (SNGAN)     |8.1700 (0.1143)        |8.1858 (0.1140)    |
 |Inception Score (CIFAR10)   |11.2671 (0.2032)       |11.2391 (0.2005)   |
 |FID Score (SNGAN on CIFAR10)|14.5675                |14.4361            |
 
-- Original implementation: [Inception Score](https://github.com/openai/improved-gan), [FID Score](https://github.com/bioinf-jku/TTUR)
+- Official implementation: [Inception Score](https://github.com/openai/improved-gan), [Fréchet Inception Distance](https://github.com/bioinf-jku/TTUR)
 
-- The original implementation of Inception Score ignores the bias of fully connect layer in inception v3, that is the most important detail to reimplement it
+- The port of official implementation of Fréchet Inception Distance is inspired 
+by [pytorch-fid](https://github.com/mseitzer/pytorch-fid)
+
+- The official implementation of Inception Score ignores the bias of fully connect layer in inception v3, that is the most important detail to reimplement it
+
+- The single output are exactly the same as in official implementation. However, due to the difference of framework implementations, both scores are slightly different from official implementations
 
 ## Requirements
 - torch 1.4.0
