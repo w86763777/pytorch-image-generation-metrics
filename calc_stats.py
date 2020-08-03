@@ -16,18 +16,26 @@ if __name__ == '__main__':
     parser = argparse.ArgumentParser("Calculate states of CIFAR10/STL10")
     parser.add_argument("--inception_dir", type=str, default='./data',
                         help='path to inception model dir')
+    parser.add_argument("--dataset", type=str, default='cifar10',
+                        choices=['cifar10', 'stl10'],
+                        help='dataset (default=cifar10)')
     parser.add_argument("--stats_path", type=str,
-                        default='./stats/cifar10_stats.npz',
-                        help="stats path")
+                        help="stats output path")
     parser.add_argument("--batch_size", type=int, default=50,
-                        help="batch size (original)")
+                        help="batch size (default=50)")
     args = parser.parse_args()
 
     device = torch.device('cuda:0')
 
-    dataset = datasets.CIFAR10(
-        './data', train=True, download=True,
-        transform=transforms.ToTensor())
+    if args.dataset == "cifar10":
+        dataset = datasets.CIFAR10(
+            './data', train=True, download=True,
+            transform=transforms.ToTensor())
+    else:
+        dataset = datasets.STL10(
+            './data', split='unlabeled', download=True,
+            transform=transforms.Compose([
+                transforms.Resize((48, 48)), transforms.ToTensor()]))
 
     dataloader = torch.utils.data.DataLoader(
         dataset, batch_size=64, shuffle=False, num_workers=0, drop_last=False)

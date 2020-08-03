@@ -32,7 +32,9 @@ by [pytorch-fid](https://github.com/mseitzer/pytorch-fid)
         ```
         # Calculate statistics of CIFAR10
         # Save stats to ./stats/cifar10_stats.npz
-        python calc_stats.py --stats_path ./stats/cifar10_stats.npz
+        python calc_stats.py \
+            --dataset cifar10 \
+            --stats_path ./stats/cifar10_stats.npz
         ```
 
 - Calculate Inception Score and FID Score at a time. Both score share same
