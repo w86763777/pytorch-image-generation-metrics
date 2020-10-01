@@ -17,26 +17,29 @@ if __name__ == '__main__':
     parser = argparse.ArgumentParser("Calculate states of CIFAR10/STL10")
     parser.add_argument("--inception_dir", type=str, default='./data',
                         help='path to inception model dir')
+    parser.add_argument("--dataset", type=str, default='cifar10',
+                        choices=['cifar10', 'stl10'],
+                        help='dataset (default=cifar10)')
     parser.add_argument("--stats_path", type=str,
-                        default='./stats/cifar10_stats.npz',
-                        help="stats path")
+                        help="stats output path")
     parser.add_argument("--batch_size", type=int, default=50,
-                        help="batch size (original default=50)")
+                        help="batch size (default=50)")
     args = parser.parse_args()
+    if args.dataset == "cifar10":
+        dataset = datasets.CIFAR10(
+            './data', train=True, download=True,
+            transform=transforms.ToTensor())
+    else:
+        dataset = datasets.STL10(
+            './data', split='unlabeled', download=True,
+            transform=transforms.Compose([
+                transforms.Resize((48, 48)), transforms.ToTensor()]))
 
-    # dataset = datasets.CIFAR10(
-    #     './data', train=True, download=True,
-    #     transform=transforms.ToTensor())
-
-    # dataset = datasets.STL10(
-    #     './data', split='unlabeled', download=True,
+    # Custom dataset
+    # dataset = datasets.ImageFolder(
+    #     './data/ILSVRC2012/train',
     #     transform=transforms.Compose([
-    #         transforms.Resize((48, 48)), transforms.ToTensor()]))
-
-    dataset = datasets.ImageFolder(
-        './data/ILSVRC2012/train',
-        transform=transforms.Compose([
-            transforms.Resize((64, 64)), transforms.ToTensor()]))
+    #         transforms.Resize((64, 64)), transforms.ToTensor()]))
 
     dataloader = torch.utils.data.DataLoader(
         dataset, batch_size=64, shuffle=False, num_workers=8, drop_last=False)
