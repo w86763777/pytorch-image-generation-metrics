@@ -5,11 +5,17 @@ from tqdm import trange
 from .inception import InceptionV3
 
 
-def get_inception_score(images, device, splits=10, batch_size=32,
-                        verbose=False):
+device = torch.device('cuda:0')
+
+
+def get_inception_score(images, splits=10, batch_size=32, verbose=False,
+                        parallel=False):
     block_idx = InceptionV3.BLOCK_INDEX_BY_DIM['prob']
     model = InceptionV3([block_idx]).to(device)
     model.eval()
+
+    if parallel:
+        model = torch.nn.DataParallel(model)
 
     preds = []
     if verbose:
@@ -21,7 +27,8 @@ def get_inception_score(images, device, splits=10, batch_size=32,
         batch_images = images[start: end]
         batch_images = torch.from_numpy(batch_images).type(torch.FloatTensor)
         batch_images = batch_images.to(device)
-        pred = model(batch_images)[0]
+        with torch.no_grad():
+            pred = model(batch_images)[0]
         preds.append(pred.cpu().numpy())
 
     preds = np.concatenate(preds, 0)
