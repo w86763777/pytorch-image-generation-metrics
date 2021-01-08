@@ -18,7 +18,7 @@
 
 - Official implementation: [Inception Score](https://github.com/openai/improved-gan), [Fréchet Inception Distance](https://github.com/bioinf-jku/TTUR)
 
-- The port of official implementation of Fréchet Inception Distance is inspired 
+- The implementation of FID is inspired 
 by [pytorch-fid](https://github.com/mseitzer/pytorch-fid)
 
 - The official implementation of Inception Score ignores the bias term of last
