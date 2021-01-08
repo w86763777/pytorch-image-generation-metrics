@@ -1,25 +1,36 @@
 # Pytorch Implementation of Inception Score and FID Score
 
-|                            |Official Implementation|This implementation|
-|----------------------------|-----------------------|-------------------|
-|Inception Score (SNGAN)     |8.1700 (0.1143)        |8.1858 (0.1140)    |
-|Inception Score (CIFAR10)   |11.2671 (0.2032)       |11.2391 (0.2005)   |
-|FID Score (SNGAN on CIFAR10)|14.5675                |14.4361            |
+- Incpetion on CIFAR10
+    |      |Official  |This implementation|
+    |------|----------|-------------------|
+    |Train |11.24±0.20|11.26±0.20         |
+    |Test  |10.98±0.22|10.97±0.33         |
+
+- FID on CIFAR10 (Test 10k)
+    |                   |Official FID|This implementation|
+    |-------------------|------------|-------------------|
+    |CIFAR10 (Train 50k)|3.15        |3.15               |
+
+- FID on CIFAR10 (Train 50k)
+    |                   |Official FID|This implementation|
+    |-------------------|------------|-------------------|
+    |CIFAR10 (Test 10k) |3.15        |3.15               |
 
 - Official implementation: [Inception Score](https://github.com/openai/improved-gan), [Fréchet Inception Distance](https://github.com/bioinf-jku/TTUR)
 
 - The port of official implementation of Fréchet Inception Distance is inspired 
 by [pytorch-fid](https://github.com/mseitzer/pytorch-fid)
 
-- The official implementation of Inception Score ignores the bias of fully connect layer in inception v3, this is the most important detail to reimplement it
+- The official implementation of Inception Score ignores the bias term of last
+layer in inception v3, this is the most important detail to reimplement it
 
-- The single output is exactly the same as in official implementation. However, due to the difference of framework implementations, both scores are slightly different from official implementations
+- Due to the difference of framework implementations, both scores are slightly different from official implementations
 
 ## Requirements
-- torch 1.4.0
-- torchvision 0.5.0
-- tqdm
-- scipy 1.5.0
+- torch 1.7.1
+- torchvision 0.8.2
+- tqdm 4.55.1
+- scipy 1.5.4
 - Install requirements
     ```
     pip install -r requirements.txt
@@ -29,50 +40,48 @@ by [pytorch-fid](https://github.com/mseitzer/pytorch-fid)
 - Prepare Statistics for calculating FID Score
     - [Download](https://github.com/bioinf-jku/TTUR#precalculated-statistics-for-fid-calculation) Precalculated Statistics for your dataset or
     - Calculate statistics for your dataset. See [example](./calc_stats.py)
-        ```
-        # Calculate statistics of CIFAR10
-        # Save stats to ./stats/cifar10_stats.npz
-        python calc_stats.py \
-            --dataset cifar10 \
-            --stats_path ./stats/cifar10_stats.npz
-        ```
+    ```
+    python calc_stats.py \
+        --dataset cifar10 \
+        --output ./cifar10_test.npz
+    ```
 
 - Calculate Inception Score and FID Score at a time. Both score share same
 Inception v3 outputs so only one forward propagation is needed for each image
     ```
     python calc_score.py \
-        --stats_cache ./stats/cifar10_stats.npz \
-        --dir path/to/images
+        --dir ./cifar10/train \
+        --stats ./cifar10_test.npz
     ```
 
 ## Integrate into training scripts
 ```python
 import torch
-from score.fid_score import get_fid_score
-from score.inception_score import get_inception_score
-from score.score import get_inception_and_fid_score
+from score.both import get_inception_and_fid_score
 
-imgs = np.array(...)    # Channel first, Normalized to [0, 1]
+
+# Support: Load every images before calculation
+images = np.array(...)  # Channel first, Normalized to [0, 1]
                         # e.g. shape = [N, 3, 32, 32]
                         # the image size will be resize to [299, 299] to match
                         # Inception V3 input size
-device = torch.device('cuda:0')
-stats_cache = "./stats/cifar10_stats.npz"
+IS, FID = get_inception_and_fid_score(
+    images, args.stats, use_torch=args.use_torch, verbose=True)
+print(IS, FID)
 
-# Calculate Inception Score only
-is_score = get_inception_score(
-    imgs, device, verbose=True)
 
-# Calculate FID Score only
-fid_score = get_fid_score(
-    imgs, stats_cache, device, verbose=False)
+# Support: Load images on demand
+def images_generator(images):
+    for image in images:
+        yield image
 
-# Calculate Inception Score and FID Score at a time
-is_score, fid_score = get_inception_and_fid_score(
-    imgs, device, stats_cache, verbose=True)
+IS, FID = get_inception_and_fid_score(
+    images_generator(files), args.stats, num_images=len(files),
+    use_torch=args.use_torch, verbose=True, parallel=False)
+print(IS, FID)
 ```
 
 ## TODO
 
-- [ ] Dynamic loading images
-- [ ] Multi-GPU computing
+- [x] Dynamic loading images
+- [x] Multi-GPU computing

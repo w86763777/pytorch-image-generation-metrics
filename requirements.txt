@@ -1,4 +1,8 @@
-torch==1.4.0
-torchvision==0.5.0
-scipy==1.5.0
-tqdm
+dataclasses==0.8
+numpy==1.19.5
+Pillow==8.1.0
+scipy==1.5.4
+torch==1.7.1
+torchvision==0.8.2
+tqdm==4.55.1
+typing-extensions==3.7.4.3
