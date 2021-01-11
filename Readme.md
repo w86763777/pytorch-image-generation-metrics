@@ -38,7 +38,7 @@ layer in inception v3, this is the most important detail to reimplement it
 
 ## Example
 - Prepare Statistics for calculating FID Score
-    - [Download](https://github.com/bioinf-jku/TTUR#precalculated-statistics-for-fid-calculation) Precalculated Statistics for your dataset or
+    - [Download](https://drive.google.com/drive/folders/1UBdzl6GtNMwNQ5U-4ESlIer43tNjiGJC?usp=sharing) Precalculated Statistics for your dataset or
     - Calculate statistics for your dataset. See [example](./calc_stats.py)
     ```
     python calc_stats.py \
