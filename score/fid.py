@@ -205,12 +205,12 @@ def get_statistics(images, num_images=None, batch_size=50, use_torch=False,
     return m1, s1
 
 
-def get_fid_score(stats_cache, images, num_images=None, batch_size=50,
+def get_fid_score(stats_path, images, num_images=None, batch_size=50,
                   use_torch=False, verbose=False, parallel=False):
     m1, s1 = get_statistics(
         images, num_images, batch_size, use_torch, verbose, parallel)
 
-    f = np.load(stats_cache)
+    f = np.load(stats_path)
     m2, s2 = f['mu'][:], f['sigma'][:]
     f.close()
     if use_torch:

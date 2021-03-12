@@ -10,7 +10,7 @@ from .fid import calculate_frechet_distance, torch_cov
 device = torch.device('cuda:0')
 
 
-def get_inception_and_fid_score(images, fid_cache, num_images=None,
+def get_inception_and_fid_score(images, fid_stats_path, num_images=None,
                                 splits=10, batch_size=50,
                                 use_torch=False,
                                 verbose=False,
@@ -98,7 +98,7 @@ def get_inception_and_fid_score(images, fid_cache, num_images=None,
         is_score = (np.mean(scores), np.std(scores))
 
     # FID Score
-    f = np.load(fid_cache)
+    f = np.load(fid_stats_path)
     m2, s2 = f['mu'][:], f['sigma'][:]
     f.close()
     if use_torch:
