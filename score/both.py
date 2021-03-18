@@ -1,7 +1,12 @@
+import os
+from glob import glob
+
 import numpy as np
 import torch
-import types
+from torch.utils.data import Dataset, DataLoader
 from tqdm import tqdm
+from torchvision.transforms.functional import to_tensor
+from PIL import Image
 
 from .inception import InceptionV3
 from .fid import calculate_frechet_distance, torch_cov
@@ -10,28 +15,59 @@ from .fid import calculate_frechet_distance, torch_cov
 device = torch.device('cuda:0')
 
 
-def get_inception_and_fid_score(images, fid_stats_path, num_images=None,
-                                splits=10, batch_size=50,
-                                use_torch=False,
-                                verbose=False,
-                                parallel=False):
-    """when `images` is a python generator, `num_images` should be given"""
+class PathDataset(Dataset):
+    def __init__(self, dir_path, exts=['png', 'jpg']):
+        self.paths = []
+        for ext in exts:
+            self.paths.extend(
+                list(glob(os.path.join(dir_path, '*.%s' % ext))))
 
-    if num_images is None and isinstance(images, types.GeneratorType):
-        raise ValueError(
-            "when `images` is a python generator, "
-            "`num_images` should be given")
+    def __len__(self):
+        return len(self.paths)
 
-    if num_images is None:
+    def __getitem__(self, idx):
+        image = Image.open(self.paths[idx])
+        image = to_tensor(image)
+        return image
+
+
+def get_inception_score_and_fid_from_directory(
+        dir_path,
+        fid_stats_path,
+        num_images=None,
+        splits=10,
+        batch_size=50,
+        use_torch=False,
+        verbose=False):
+    return get_inception_score_and_fid(
+        images=DataLoader(PathDataset(dir_path), batch_size=batch_size),
+        fid_stats_path=fid_stats_path,
+        splits=splits,
+        batch_size=batch_size,
+        is_dataloader=True,
+        use_torch=use_torch,
+        verbose=verbose,
+    )
+
+
+def get_inception_score_and_fid(
+        images,
+        fid_stats_path,
+        splits=10,
+        batch_size=50,
+        is_dataloader=False,
+        use_torch=False,
+        verbose=False):
+    if is_dataloader:
+        assert isinstance(images, DataLoader)
+        num_images = min(len(images.dataset), images.batch_size * len(images))
+    else:
         num_images = len(images)
 
     block_idx1 = InceptionV3.BLOCK_INDEX_BY_DIM[2048]
     block_idx2 = InceptionV3.BLOCK_INDEX_BY_DIM['prob']
     model = InceptionV3([block_idx1, block_idx2]).to(device)
     model.eval()
-
-    if parallel:
-        model = torch.nn.DataParallel(model)
 
     if use_torch:
         fid_acts = torch.empty((num_images, 2048)).to(device)
@@ -40,27 +76,27 @@ def get_inception_and_fid_score(images, fid_stats_path, num_images=None,
         fid_acts = np.empty((num_images, 2048))
         is_probs = np.empty((num_images, 1008))
 
-    iterator = iter(tqdm(
-        images, total=num_images,
-        dynamic_ncols=True, leave=False, disable=not verbose,
-        desc="get_inception_and_fid_score"))
-
+    pbar = tqdm(
+        total=num_images, dynamic_ncols=True, leave=False,
+        disable=not verbose, desc="get_inception_score_and_fid")
+    looper = iter(images)
     start = 0
     while True:
-        batch_images = []
         # get a batch of images from iterator
         try:
-            for _ in range(batch_size):
-                batch_images.append(next(iterator))
+            batch_images = []
+            if is_dataloader:
+                batch_images = next(looper)
+            else:
+                for _ in range(batch_size):
+                    batch_images.append(next(looper))
+                batch_images = torch.stack(batch_images, dim=0)
         except StopIteration:
             if len(batch_images) == 0:
                 break
-            pass
-        batch_images = np.stack(batch_images, axis=0)
         end = start + len(batch_images)
 
         # calculate inception feature
-        batch_images = torch.from_numpy(batch_images).type(torch.FloatTensor)
         batch_images = batch_images.to(device)
         with torch.no_grad():
             pred = model(batch_images)
@@ -71,6 +107,8 @@ def get_inception_and_fid_score(images, fid_stats_path, num_images=None,
                 fid_acts[start: end] = pred[0].view(-1, 2048).cpu().numpy()
                 is_probs[start: end] = pred[1].cpu().numpy()
         start = end
+        pbar.update(len(batch_images))
+    pbar.close()
 
     # Inception Score
     scores = []
