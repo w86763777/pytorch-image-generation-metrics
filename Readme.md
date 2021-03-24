@@ -43,7 +43,7 @@ layer in inception v3, this is the most important detail to reimplement it
     ```
     python calc_stats.py \
         --dataset cifar10 \
-        --output ./cifar10_test.npz
+        --output ./cifar10.test.npz
     ```
 
 - Calculate Inception Score and FID Score at a time. Both score share same
@@ -51,7 +51,7 @@ Inception v3 outputs so only one forward propagation is needed for each image
     ```
     python calc_score.py \
         --dir ./cifar10/train \
-        --stats ./cifar10_test.npz
+        --stats ./cifar10.test.npz
     ```
 
 ## Integrate into training scripts

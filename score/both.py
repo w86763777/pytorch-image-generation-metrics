@@ -94,6 +94,8 @@ def get_inception_score_and_fid(
         except StopIteration:
             if len(batch_images) == 0:
                 break
+            else:
+                batch_images = torch.stack(batch_images, dim=0)
         end = start + len(batch_images)
 
         # calculate inception feature
