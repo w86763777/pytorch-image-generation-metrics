@@ -81,21 +81,12 @@ def get_inception_score_and_fid(
         disable=not verbose, desc="get_inception_score_and_fid")
     looper = iter(images)
     start = 0
-    while True:
+    while start < num_images:
         # get a batch of images from iterator
-        try:
-            batch_images = []
-            if is_dataloader:
-                batch_images = next(looper)
-            else:
-                for _ in range(batch_size):
-                    batch_images.append(next(looper))
-                batch_images = torch.stack(batch_images, dim=0)
-        except StopIteration:
-            if len(batch_images) == 0:
-                break
-            else:
-                batch_images = torch.stack(batch_images, dim=0)
+        if is_dataloader:
+            batch_images = next(looper)
+        else:
+            batch_images = images[start: start + batch_size]
         end = start + len(batch_images)
 
         # calculate inception feature
