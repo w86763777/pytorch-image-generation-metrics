@@ -2,49 +2,39 @@ import argparse
 import os
 import glob
 
-import numpy as np
+import torch
 from torchvision.transforms.functional import to_tensor
 from PIL import Image
 
-from score.both import get_inception_and_fid_score
+from score.both import (
+    get_inception_score_and_fid_from_directory,
+    get_inception_score_and_fid
+)
 
 
 if __name__ == "__main__":
-    parser = argparse.ArgumentParser(
-        "Calculate FID(CIFAR10) and Inception Score")
-    parser.add_argument('--dir', type=str, required=True, help='image dir')
+    parser = argparse.ArgumentParser("Calculate Inception Score and FID")
+    parser.add_argument('--path', type=str, required=True, help='image dir')
     parser.add_argument('--stats', type=str,
-                        default='./stats/cifar10_test.npz',
+                        default='./stats/cifar10.test.npz',
                         help='reference stats for FID')
     parser.add_argument('--use_torch', action='store_true',
                         help='make torch be backend, or the numpy is used')
     args = parser.parse_args()
 
+    # 1. from file
+    # print("Fome file (save memory)")
+    # IS, FID = get_inception_score_and_fid_from_directory(
+    #     args.path, args.stats, use_torch=args.use_torch, verbose=True)
+    # print(IS, FID)
+
+    # 2. preload
+    print("Preload images (efficient IO)")
     files = (
-        list(glob.glob(os.path.join(args.dir, '*.png'))) +
-        list(glob.glob(os.path.join(args.dir, '*.jpg')))
+        list(glob.glob(os.path.join(args.path, '*.png'))) +
+        list(glob.glob(os.path.join(args.path, '*.jpg')))
     )
-
-    # Support: Load every images before calculating IS and FID
-    imgs = []
-    for file_path in files:
-        img = Image.open(file_path)
-        img = to_tensor(img)
-        imgs.append(img.numpy())
-    imgs = np.array(imgs)
-
-    IS, FID = get_inception_and_fid_score(
-        imgs, args.stats, use_torch=args.use_torch, verbose=True)
-    print(IS, FID)
-
-    # Support: Load images on demand
-    def images_generator(files):
-        for file_path in files:
-            img = Image.open(file_path)
-            img = to_tensor(img).numpy()
-            yield img
-
-    IS, FID = get_inception_and_fid_score(
-        images_generator(files), args.stats, num_images=len(files),
-        use_torch=args.use_torch, verbose=True, parallel=False)
+    images = torch.stack([to_tensor(Image.open(path)) for path in files])
+    IS, FID = get_inception_score_and_fid(
+        images, args.stats, use_torch=args.use_torch, verbose=True)
     print(IS, FID)

@@ -43,7 +43,6 @@ def get_inception_score_and_fid_from_directory(
         images=DataLoader(PathDataset(dir_path), batch_size=batch_size),
         fid_stats_path=fid_stats_path,
         splits=splits,
-        batch_size=batch_size,
         is_dataloader=True,
         use_torch=use_torch,
         verbose=verbose,
@@ -58,9 +57,33 @@ def get_inception_score_and_fid(
         is_dataloader=False,
         use_torch=False,
         verbose=False):
+    """Calculate Inception Score and FID.
+    For each image, only a forward propagation is required to
+    calculating features for FID and Inception Score.
+
+    Args:
+        images: List of tensor or torch.utils.data.Dataloader. The return image
+                must be float tensor of range [0, 1].
+        fid_stats_path: str, Path to pre-calculated statistic
+        splits: The number of bins of Inception Score. Default is 10.
+        batch_size: int, The batch size for calculating activations. If
+                    `images` is torch.utils.data.Dataloader, this arguments
+                    does not work.
+        use_torch: bool. The default value is False and the backend is same as
+                   official implementation, i.e., numpy. If use_torch is
+                   enableb, the backend linalg is implemented by torch, the
+                   results are not guaranteed to be consistent with numpy, but
+                   the speed can be accelerated by GPU.
+        verbose: int. Set verbose to 0 for disabling progress bar. Otherwise,
+                 the progress bar is showing when calculating activations.
+    Returns:
+        inception_score: float tuple, (mean, std)
+        fid: float
+    """
     if is_dataloader:
         assert isinstance(images, DataLoader)
         num_images = min(len(images.dataset), images.batch_size * len(images))
+        batch_size = images.batch_size
     else:
         num_images = len(images)
 

@@ -56,32 +56,16 @@ Inception v3 outputs so only one forward propagation is needed for each image
 
 ## Integrate into training scripts
 ```python
-import torch
-from score.both import get_inception_and_fid_score
+from score.both import get_inception_score_and_fid
 
-
-# Support: Load every images before calculation
-images = np.array(...)  # Channel first, Normalized to [0, 1]
-                        # e.g. shape = [N, 3, 32, 32]
-                        # the image size will be resize to [299, 299] to match
-                        # Inception V3 input size
-IS, FID = get_inception_and_fid_score(
+images = ...    # torch float tensor of shape [num_images, 3, height, width]
+                # the value range is [0, 1]
+IS, FID = get_inception_score_and_fid(
     images, args.stats, use_torch=args.use_torch, verbose=True)
-print(IS, FID)
-
-
-# Support: Load images on demand
-def images_generator(images):
-    for image in images:
-        yield image
-
-IS, FID = get_inception_and_fid_score(
-    images_generator(files), args.stats, num_images=len(files),
-    use_torch=args.use_torch, verbose=True, parallel=False)
 print(IS, FID)
 ```
 
 ## TODO
 
 - [x] Dynamic loading images
-- [x] Multi-GPU computing
+- [ ] Multi-GPU computing
