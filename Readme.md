@@ -23,7 +23,7 @@ The key feature of this repo is speeding up Inception Score and FID computation 
 
 ## Notes
 
-- Out FID implementation is inspired from [pytorch-fid](https://github.com/mseitzer/pytorch-fid)
+- Our FID implementation is inspired from [pytorch-fid](https://github.com/mseitzer/pytorch-fid)
 
 - The official implementation of Inception Score ignores the bias term of last layer in inception v3, this is the most important detail when reimplement Inception Score.
 
