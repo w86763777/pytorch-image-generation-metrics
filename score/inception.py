@@ -2,15 +2,12 @@ import torch
 import torch.nn as nn
 import torch.nn.functional as F
 from torchvision import models
-
-try:
-    from torchvision.models.utils import load_state_dict_from_url
-except ImportError:
-    from torch.utils.model_zoo import load_url as load_state_dict_from_url
+from torchvision.models.utils import load_state_dict_from_url
 
 # Inception weights ported to Pytorch from
 # http://download.tensorflow.org/models/image/imagenet/inception-2015-12-05.tgz
-FID_WEIGHTS_URL = 'https://github.com/mseitzer/pytorch-fid/releases/download/fid_weights/pt_inception-2015-12-05-6726825d.pth'
+FID_WEIGHTS_URL = ('https://github.com/mseitzer/pytorch-fid/releases/download/'
+                   'fid_weights/pt_inception-2015-12-05-6726825d.pth')
 
 
 class InceptionV3(nn.Module):
@@ -26,7 +23,7 @@ class InceptionV3(nn.Module):
         192: 1,     # Second max pooling featurs
         768: 2,     # Pre-aux classifier features
         2048: 3,    # Final average pooling features
-        'prob': 4,  # softmax layer
+        1008: 4,    # softmax layer
     }
 
     def __init__(self,
@@ -37,39 +34,40 @@ class InceptionV3(nn.Module):
                  use_fid_inception=True):
         """Build pretrained InceptionV3
 
-        Parameters
-        ----------
-        output_blocks : list of int
-            Indices of blocks to return features of. Possible values are:
-                - 0: corresponds to output of first max pooling
-                - 1: corresponds to output of second max pooling
-                - 2: corresponds to output which is fed to aux classifier
-                - 3: corresponds to output of final average pooling
-        resize_input : bool
-            If true, bilinearly resizes input to width and height 299 before
-            feeding input to model. As the network without fully connected
-            layers is fully convolutional, it should be able to handle inputs
-            of arbitrary size, so resizing might not be strictly needed
-        normalize_input : bool
-            If true, scales the input from range (0, 1) to the range the
-            pretrained Inception network expects, namely (-1, 1)
-        requires_grad : bool
-            If true, parameters of the model require gradients. Possibly useful
-            for finetuning the network
-        use_fid_inception : bool
-            If true, uses the pretrained Inception model used in Tensorflow's
-            FID implementation. If false, uses the pretrained Inception model
-            available in torchvision. The FID Inception model has different
-            weights and a slightly different structure from torchvision's
-            Inception model. If you want to compute FID scores, you are
-            strongly advised to set this parameter to true to get comparable
-            results.
+        Args:
+            output_blocks : List of int
+                Indices of blocks to return features of. Possible values are:
+                    - 0: corresponds to output of first max pooling
+                    - 1: corresponds to output of second max pooling
+                    - 2: corresponds to output which is fed to aux classifier
+                    - 3: corresponds to output of final average pooling
+                    - 4: corresponds to output of softmax
+            resize_input : bool
+                If true, bilinearly resizes input to width and height 299
+                before feeding input to model. As the network without fully
+                connected layers is fully convolutional, it should be able to
+                handle inputs of arbitrary size, so resizing might not be
+                strictly needed
+            normalize_input : bool
+                If true, scales the input from range (0, 1) to the range the
+                pretrained Inception network expects, namely (-1, 1)
+            requires_grad : bool
+                If true, parameters of the model require gradients. Possibly
+                useful for finetuning the network
+            use_fid_inception : bool
+                If true, uses the pretrained Inception model used in
+                Tensorflow's FID implementation. If false, uses the pretrained
+                Inception model available in torchvision. The FID Inception
+                model has different weights and a slightly different structure
+                from torchvision's Inception model. If you want to compute FID
+                scores, you are strongly advised to set this parameter to true
+                to get comparable results.
         """
         super(InceptionV3, self).__init__()
 
         self.resize_input = resize_input
         self.normalize_input = normalize_input
-        self.output_blocks = sorted(output_blocks)
+        self.output_blocks = output_blocks
         self.last_needed_block = max(output_blocks)
 
         # assert self.last_needed_block <= 3, \
@@ -126,28 +124,25 @@ class InceptionV3(nn.Module):
             self.blocks.append(nn.Sequential(*block3))
 
         if self.last_needed_block >= 4:
-            self.fc = inception.fc
-            self.fc.bias = None
+            inception.fc.bias = None
+            self.blocks.append(inception.fc)
 
         for param in self.parameters():
             param.requires_grad = requires_grad
 
-    def forward(self, inp):
+    def forward(self, x):
         """Get Inception feature maps
 
-        Parameters
-        ----------
-        inp : torch.autograd.Variable
-            Input tensor of shape Bx3xHxW. Values are expected to be in
-            range (0, 1)
+        Args:
+            x : torch.FloatTensor,Input tensor of shape [B x 3 x H x W]. If
+                `normalize_input` is True, values are expected to be in range
+                [0, 1]; Otherwise, values are expected to be in range [-1, 1].
 
-        Returns
-        -------
-        List of torch.autograd.Variable, corresponding to the selected output
-        block, sorted ascending by index
+        Returns:
+            List of torch.FloatTensor, corresponding to the selected output
+            block, sorted ascending by index
         """
-        outp = []
-        x = inp
+        outputs = [None for _ in range(len(self.output_blocks))]
 
         if self.resize_input:
             x = F.interpolate(x,
@@ -159,23 +154,22 @@ class InceptionV3(nn.Module):
             x = 2 * x - 1  # Scale from range (0, 1) to range (-1, 1)
 
         for idx, block in enumerate(self.blocks):
-            x = block(x)
+            if idx < 4:
+                x = block(x)
+            else:
+                x = F.dropout(x, training=self.training)    # N x 2048 x 1 x 1
+                x = torch.flatten(x, start_dim=1)           # N x 2048
+                x = block(x)                                # N x 1000
+                x = F.softmax(x, dim=1)
+
             if idx in self.output_blocks:
-                outp.append(x)
+                order = self.output_blocks.index(idx)
+                outputs[order] = x
 
             if idx == self.last_needed_block:
                 break
 
-        if self.last_needed_block >= 4:
-            x = F.dropout(x, training=self.training)
-            # N x 2048 x 1 x 1
-            x = torch.flatten(x, 1)
-            # N x 2048
-            x = self.fc(x)
-            x = F.softmax(x, dim=1)
-            outp.append(x)
-
-        return outp
+        return outputs
 
 
 def fid_inception_v3():
