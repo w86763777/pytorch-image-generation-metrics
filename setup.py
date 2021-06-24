@@ -1,6 +1,8 @@
 import os
-
 import setuptools
+
+
+import pytorch_gan_metrics
 
 
 def read(rel_path):
@@ -12,11 +14,10 @@ def read(rel_path):
 if __name__ == '__main__':
     setuptools.setup(
         name='pytorch_gan_metrics',
-        version='0.1.0',
+        version=pytorch_gan_metrics.__version__,
         author='Yi-Lun Wu',
         author_email='w86763777@gmail.com',
-        description=(
-            'Package for calculating GAN metrics using Pytorch'),
+        description=('Package for calculating GAN metrics using Pytorch'),
         long_description=read('README.md'),
         long_description_content_type='text/markdown',
         url='https://github.com/w86763777/pytorch-gan-metrics',
@@ -24,8 +25,10 @@ if __name__ == '__main__':
         keywords=[
             'PyTorch',
             'GAN',
-            'Inception Score', 'IS',
-            'Frechet Inception Distance', 'FID'],
+            'Inception Score',
+            'IS',
+            'Frechet Inception Distance',
+            'FID'],
         classifiers=[
             'Programming Language :: Python :: 3',
             'License :: OSI Approved :: Apache Software License',

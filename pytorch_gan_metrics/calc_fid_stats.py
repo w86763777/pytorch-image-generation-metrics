@@ -16,8 +16,6 @@ if __name__ == '__main__':
                         help="output path")
     parser.add_argument("--batch_size", type=int, default=50,
                         help="batch size (default=50)")
-    parser.add_argument("--inception_dir", type=str, default='/tmp',
-                        help='path to inception model dir')
     args = parser.parse_args()
 
     dataset = ImageDataset(args.path, exts=['png', 'jpg'])

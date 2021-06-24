@@ -17,4 +17,4 @@ __all__ = [
     get_inception_score_and_fid_from_directory
 ]
 
-__version__ = '0.1.0'
+__version__ = '0.2.0'

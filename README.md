@@ -5,31 +5,33 @@
 ## Notes
 The FID implementation is inspired from [pytorch-fid](https://github.com/mseitzer/pytorch-fid).
 
-## Feature
-- Currently, this package supports following metrics:
-  - [Inception Score](https://github.com/openai/improved-gan) (IS)
-  - [Fréchet Inception Distance](https://github.com/bioinf-jku/TTUR) (FID)
-- The computation processes of IS and FID are integrated to avoid multiple forward propagations.
-- Read image on the fly for both metrics.
-
-## Reproducing Results of Official Implementations
-
-- CIFAR-10
-
-    |                   |Train IS  |Test IS   |Train(50k) vs Test(10k)<br>FID|
-    |-------------------|:--------:|:--------:|:----------------------------:|
-    |Official           |11.24±0.20|10.98±0.22|3.1508                        |
-    |pytorch-gan-metrics|11.26±0.27|10.97±0.33|3.1517                        |
-    
-    Due to the framework difference between PyTorch and TensorFlow, the results are slightly different from official implementations.
+This repository is developed for personal research. If you think this package can also benefit your life, please feel free to open issues.
 
 ## Install
 ```
 pip install pytorch-gan-metrics
 ```
 
+## Feature
+- Currently, this package supports following metrics:
+  - [Inception Score](https://github.com/openai/improved-gan) (IS)
+  - [Fréchet Inception Distance](https://github.com/bioinf-jku/TTUR) (FID)
+- The computation processes of IS and FID are integrated to avoid multiple forward propagations.
+- Support reading image on the fly to avoid out of memory especially for large scale images.
+- Support computation on GPU to speed up some cpu operations such as `np.cov` and `scipy.linalg.sqrtm`.
+
+## Reproducing Results of Official Implementations on CIFAR-10
+
+|                   |Train IS  |Test IS   |Train(50k) vs Test(10k)<br>FID|
+|-------------------|:--------:|:--------:|:----------------------------:|
+|Official           |11.24±0.20|10.98±0.22|3.1508                        |
+|pytorch-gan-metrics|11.26±0.27|10.97±0.33|3.1517                        |
+|pytorch-gan-metrics<br>`use_torch=True`|11.26±0.21|10.97±0.34|3.1377                        |
+    
+The results are slightly different from official implementations due to the framework difference between PyTorch and TensorFlow.
+
 ## Prepare Statistics for FID
-- [Download](https://drive.google.com/drive/folders/1UBdzl6GtNMwNQ5U-4ESlIer43tNjiGJC?usp=sharing) precalculated statistics for dataset or
+- [Download](https://drive.google.com/drive/folders/1UBdzl6GtNMwNQ5U-4ESlIer43tNjiGJC?usp=sharing) precalculated statistics or
 - Calculate statistics for your custom dataset using command line tool
     ```bash
     python -m pytorch_gan_metrics.calc_fid_stats --path path/to/images --output name.npz
@@ -37,6 +39,10 @@ pip install pytorch-gan-metrics
     See [calc_fid_stats.py](./pytorch_gan_metrics/calc_fid_stats.py) for implementation details.
 
 ### Documentation
+
+#### How to use GPU?
+`pytorch_gan_metrics` default uses `torch.device('cuda:0')` if GPU is available; Otherwise, it uses `cpu` to calculate inception feature.
+
 #### Using `torch.Tensor` as images
 - Prepare images in type `torch.float32` with shape `[N, 3, H, W]` and normalized to `[0,1]`.
     ```python
@@ -54,8 +60,9 @@ pip install pytorch-gan-metrics
         images, 'path/to/statistics.npz')
 
     ```
-#### Using PyTorch DataLoader
-- Use `pytorch_gan_metrics.ImageDataset` to collect images on disk or use custom dataset which should only return an image in `__getitem__`.
+
+#### Using PyTorch DataLoader to Provide Images
+- Use `pytorch_gan_metrics.ImageDataset` to collect images on disk or use custom `torch.utils.data.Dataset` which should only return an image in the end of `__getitem__`.
     ```python
     from pytorch_gan_metrics import ImageDataset
 
@@ -92,7 +99,7 @@ pip install pytorch-gan-metrics
         loader, 'path/to/statistics.npz')
     ```
 
-#### From directory
+#### Specify Images by a Directory Path
 - Calculate metrics for images in the directory.
     ```python
     from pytorch_gan_metrics import (
@@ -105,6 +112,11 @@ pip install pytorch-gan-metrics
     (IS, IS_std), FID = get_inception_score_and_fid_from_directory(
         'path/to/images', fid_stats_path)
     ```
+
+#### Set PyTorch as backend
+- Set `use_torch=True` when calling functions `get_*` such as `get_inception_score`, `get_fid`, etc.
+- **WARNING** when set `use_torch=True`, the FID might be `nan` due to the unstable implementation of matrix sqrt.
+- This option is recommended to be used when evaluate generative models on a server machine which is equipped with high efficiency GPUs while the cpu frequency is low.
 
 ## License
 
