@@ -14,9 +14,6 @@ from .core import (
     calculate_frechet_inception_distance)
 
 
-device = torch.device('cuda:0')
-
-
 class ImageDataset(Dataset):
     def __init__(self, path, exts=['png', 'jpg']):
         self.paths = []

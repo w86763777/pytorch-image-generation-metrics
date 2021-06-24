@@ -1,9 +1,12 @@
 .vscode
 
-data
+cifar10
 stats
 *.npz
 
 venv
 __pycache__
 .python-version
+
+build
+dist

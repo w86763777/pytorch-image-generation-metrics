@@ -2,15 +2,10 @@ import argparse
 import os
 
 import numpy as np
-import torch
 from torch.utils.data import DataLoader
 
-from score.core import get_inception_feature
-from score.utils import ImageDataset
-
-
-DIM = 2048
-device = torch.device('cuda:0')
+from . import ImageDataset
+from .core import get_inception_feature
 
 
 if __name__ == '__main__':
@@ -26,7 +21,7 @@ if __name__ == '__main__':
     args = parser.parse_args()
 
     dataset = ImageDataset(args.path, exts=['png', 'jpg'])
-    loader = DataLoader(dataset, batch_size=50)
+    loader = DataLoader(dataset, batch_size=50, num_workers=4)
     acts, = get_inception_feature(loader, dims=[2048], verbose=True)
 
     mu = np.mean(acts, axis=0)

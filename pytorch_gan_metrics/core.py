@@ -1,4 +1,4 @@
-from typing import List, Union
+from typing import List, Union, Tuple
 
 import numpy as np
 import torch
@@ -9,7 +9,7 @@ from torch.utils.data import DataLoader
 from .inception import InceptionV3
 
 
-device = torch.device('cuda:0')
+device = torch.device('cuda:0' if torch.cuda.is_available() else 'cpu')
 
 
 def get_inception_feature(
@@ -36,7 +36,7 @@ def get_inception_feature(
             the backend linalg is implemented by torch, the results are not
             guaranteed to be consistent with numpy, but the speed can be
             accelerated by GPU.
-        verbose: int. Set verbose to 0 for disabling progress bar. Otherwise,
+        verbose: Set verbose to False for disabling progress bar. Otherwise,
             the progress bar is showing when calculating activations.
     Returns:
         inception_score: float tuple, (mean, std)
@@ -241,7 +241,7 @@ def calculate_inception_score(
     probs: Union[torch.FloatTensor, np.ndarray],
     splits: int = 10,
     use_torch: bool = False,
-):
+) -> Tuple[float, float]:
     # Inception Score
     scores = []
     for i in range(splits):
