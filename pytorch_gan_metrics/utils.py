@@ -51,7 +51,8 @@ def get_inception_score_and_fid(
                    enableb, the backend linalg is implemented by torch, the
                    results are not guaranteed to be consistent with numpy, but
                    the speed can be accelerated by GPU.
-        **kwargs: Please refer to `get_inception_feature` for other arguments.
+        **kwargs: Please refer to `core.get_inception_feature` for other
+                  arguments.
     Returns:
         inception_score: float tuple, (mean, std)
         fid: float
