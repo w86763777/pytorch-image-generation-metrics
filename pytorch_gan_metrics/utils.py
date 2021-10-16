@@ -31,7 +31,7 @@ class ImageDataset(Dataset):
 
 
 def get_inception_score_and_fid(
-    images: Union[List[torch.FloatTensor], DataLoader],
+    images: Union[torch.FloatTensor, DataLoader],
     fid_stats_path: str,
     splits: int = 10,
     use_torch: bool = False,
@@ -102,7 +102,7 @@ def get_inception_score_and_fid_from_directory(
 
 
 def get_fid(
-    images: Union[List[torch.FloatTensor], DataLoader],
+    images: Union[torch.FloatTensor, DataLoader],
     fid_stats_path: str,
     use_torch: bool = False,
     **kwargs,
@@ -154,7 +154,7 @@ def get_fid_from_directory(
 
 
 def get_inception_score(
-    images: Union[List[torch.FloatTensor], DataLoader],
+    images: Union[torch.FloatTensor, DataLoader],
     splits: int = 10,
     use_torch: bool = False,
     **kwargs,
