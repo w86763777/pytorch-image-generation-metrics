@@ -2,7 +2,7 @@ import torch
 import torch.nn as nn
 import torch.nn.functional as F
 from torchvision import models
-from torchvision.models.utils import load_state_dict_from_url
+from torch.hub import load_state_dict_from_url
 
 # Inception weights ported to Pytorch from
 # http://download.tensorflow.org/models/image/imagenet/inception-2015-12-05.tgz
