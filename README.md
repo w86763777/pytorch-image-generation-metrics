@@ -30,7 +30,9 @@ pip install pytorch-gan-metrics
     
 The results are slightly different from official implementations due to the framework difference between PyTorch and TensorFlow.
 
-## Prepare Statistics for FID
+## Documentation
+
+### Prepare Statistics for FID
 - [Download](https://drive.google.com/drive/folders/1UBdzl6GtNMwNQ5U-4ESlIer43tNjiGJC?usp=sharing) precalculated statistics or
 - Calculate statistics for your custom dataset using command line tool
     ```bash
@@ -38,12 +40,10 @@ The results are slightly different from official implementations due to the fram
     ```
     See [calc_fid_stats.py](./pytorch_gan_metrics/calc_fid_stats.py) for implementation details.
 
-### Documentation
+### Inception Features
+When using `pytorch_gan_metrics` to get IS or FID, the `InceptionV3` will be loaded into `torch.device('cuda:0')` if GPU is availabel; Otherwise, it uses `cpu` to calculate inception features.
 
-#### How to use GPU?
-`pytorch_gan_metrics` default uses `torch.device('cuda:0')` if GPU is available; Otherwise, it uses `cpu` to calculate inception feature.
-
-#### Using `torch.Tensor` as images
+### Using `torch.Tensor` as images
 - Prepare images in type `torch.float32` with shape `[N, 3, H, W]` and normalized to `[0,1]`.
     ```python
     from pytorch_gan_metrics import (get_inception_score,
@@ -61,8 +61,8 @@ The results are slightly different from official implementations due to the fram
 
     ```
 
-#### Using PyTorch DataLoader to Provide Images
-- Use `pytorch_gan_metrics.ImageDataset` to collect images on disk or use custom `torch.utils.data.Dataset` which should only return an image in the end of `__getitem__`.
+### Using PyTorch DataLoader to Provide Images
+- Use `pytorch_gan_metrics.ImageDataset` to collect images on disk or use custom `torch.utils.data.Dataset`.
     ```python
     from pytorch_gan_metrics import ImageDataset
 
@@ -99,7 +99,7 @@ The results are slightly different from official implementations due to the fram
         loader, 'path/to/statistics.npz')
     ```
 
-#### Specify Images by a Directory Path
+### Specify Images by a Directory Path
 - Calculate metrics for images in the directory.
     ```python
     from pytorch_gan_metrics import (
@@ -113,10 +113,10 @@ The results are slightly different from official implementations due to the fram
         'path/to/images', fid_stats_path)
     ```
 
-#### Set PyTorch as backend
+### Accelerating Matrix Computation by PyTorch
 - Set `use_torch=True` when calling functions `get_*` such as `get_inception_score`, `get_fid`, etc.
-- **WARNING** when set `use_torch=True`, the FID might be `nan` due to the unstable implementation of matrix sqrt.
-- This option is recommended to be used when evaluate generative models on a server machine which is equipped with high efficiency GPUs while the cpu frequency is low.
+- **WARNING** when `use_torch=True` is used, the FID might be `nan` due to the unstable implementation of matrix sqrt.
+- This option is recommended to be used when evaluating generative models on a server which is equipped with high efficiency GPUs while the cpu frequency is low.
 
 ## License
 
@@ -126,5 +126,5 @@ This implementation is derived from [pytorch-fid](https://github.com/mseitzer/py
 
 FID was introduced by Martin Heusel, Hubert Ramsauer, Thomas Unterthiner, Bernhard Nessler and Sepp Hochreiter in "GANs Trained by a Two Time-Scale Update Rule Converge to a Local Nash Equilibrium", see [https://arxiv.org/abs/1706.08500](https://arxiv.org/abs/1706.08500)
 
-The original implementation is by the Institute of Bioinformatics, JKU Linz, licensed under the Apache License 2.0.
+The original implementation of FID is by the Institute of Bioinformatics, JKU Linz, licensed under the Apache License 2.0.
 See [https://github.com/bioinf-jku/TTUR](https://github.com/bioinf-jku/TTUR).

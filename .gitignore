@@ -10,6 +10,7 @@ __pycache__
 
 build
 dist
-pytorch_gan_metrics-0.3.0
-pytorch_gan_metrics.egg-info
+pytorch_gan_metrics*
 .tox
+
+!pytorch_gan_metrics

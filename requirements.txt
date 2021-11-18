@@ -1,4 +1,4 @@
-scipy==1.5.4
-torch>=1.5.0,<=1.8.1
-torchvision>=0.6.0,<=0.9.1
 tqdm
+scipy==1.5.4
+torch>=1.8.1
+torchvision>=0.9.1

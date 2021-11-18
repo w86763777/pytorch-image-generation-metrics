@@ -1,7 +1,9 @@
 import unittest
+import os
 
 import torch
 from torch.utils.data import DataLoader
+import torch.multiprocessing
 
 from pytorch_gan_metrics.utils import (
     ImageDataset,
@@ -12,6 +14,14 @@ from pytorch_gan_metrics.utils import (
     get_inception_score_and_fid,
     get_inception_score_and_fid_from_directory)
 
+# Fix RuntimeError: Too many open files.
+torch.multiprocessing.set_sharing_strategy('file_system')
+num_workers = os.cpu_count()
+if num_workers is not None:
+    num_workers = min(num_workers - 1, 3)
+else:
+    num_workers = 3
+
 
 class AllTestCase(unittest.TestCase):
     pass
@@ -19,14 +29,14 @@ class AllTestCase(unittest.TestCase):
 
 def test_inception_score_dataloader(path, use_torch):
     loader = DataLoader(
-        ImageDataset(path), batch_size=50, num_workers=4)
+        ImageDataset(path), batch_size=50, num_workers=num_workers)
     IS, IS_std = get_inception_score(loader, use_torch=use_torch)
     return IS, IS_std
 
 
 def test_inception_score_tensor(path, use_torch):
     loader = DataLoader(
-        ImageDataset(path), batch_size=50, num_workers=4)
+        ImageDataset(path), batch_size=50, num_workers=num_workers)
     images = torch.cat([batch_images for batch_images in loader], dim=0)
     IS, IS_std = get_inception_score(images, use_torch=use_torch)
     return IS, IS_std
@@ -40,14 +50,14 @@ def test_inception_score_from_directory(path, use_torch):
 
 def test_fid_dataloader(path, fid_stats_path, use_torch):
     loader = DataLoader(
-        ImageDataset(path), batch_size=50, num_workers=4)
+        ImageDataset(path), batch_size=50, num_workers=num_workers)
     FID = get_fid(loader, fid_stats_path, use_torch=use_torch)
     return FID,
 
 
 def test_fid_tensor(path, fid_stats_path, use_torch):
     loader = DataLoader(
-        ImageDataset(path), batch_size=50, num_workers=4)
+        ImageDataset(path), batch_size=50, num_workers=num_workers)
     images = torch.cat([batch_images for batch_images in loader], dim=0)
     FID = get_fid(images, fid_stats_path, use_torch=use_torch)
     return FID,
@@ -61,7 +71,7 @@ def test_fid_from_directory(path, fid_stats_path, use_torch):
 
 def test_inception_score_and_fid_dataloader(path, fid_stats_path, use_torch):
     loader = DataLoader(
-        ImageDataset(path), batch_size=50, num_workers=4)
+        ImageDataset(path), batch_size=50, num_workers=num_workers)
     (IS, IS_std), FID = get_inception_score_and_fid(
         loader, fid_stats_path, use_torch=use_torch)
     return IS, IS_std, FID
@@ -69,7 +79,7 @@ def test_inception_score_and_fid_dataloader(path, fid_stats_path, use_torch):
 
 def test_inception_score_and_fid_tensor(path, fid_stats_path, use_torch):
     loader = DataLoader(
-        ImageDataset(path), batch_size=50, num_workers=4)
+        ImageDataset(path), batch_size=50, num_workers=num_workers)
     images = torch.cat([batch_images for batch_images in loader], dim=0)
     (IS, IS_std), FID = get_inception_score_and_fid(
         images, fid_stats_path, use_torch=use_torch)
@@ -87,13 +97,19 @@ def create_test(test_fn, inputs, expected_outputs):
     def do_test_expected(self):
         outputs = test_fn(**inputs)
         for output, expected_output in zip(outputs, expected_outputs):
-            self.assertEqual(output, expected_output)
+            relative_err = abs((output - expected_output) / expected_output)
+            self.assertLess(relative_err, 1e-4)
     return do_test_expected
 
 
 if __name__ == '__main__':
-    # numpy 11.267066921084192 0.2032413984924413 3.1517650331493883
-    # torch 11.26706600189209 0.2142351269721985 3.137664794921875
+    # CUDA 10.2
+    NP_IS = 11.265363978062746
+    NP_IS_STD = 0.08081806306810498
+    NP_FID = 3.151765556578084
+    PT_IS = 11.265363693237305
+    PT_IS_STD = 0.08519038558006287
+    PT_FID = 3.145416259765625
     configs = [
         {
             'test_fns': [
@@ -107,14 +123,14 @@ if __name__ == '__main__':
                         'path': './cifar10/train',
                         'use_torch': False
                     },
-                    'outputs': [11.267066921084192, 0.2032413984924413]
+                    'outputs': [NP_IS, NP_IS_STD]
                 },
                 {
                     'inputs': {
                         'path': './cifar10/train',
                         'use_torch': True
                     },
-                    'outputs': [11.26706600189209, 0.2142351269721985]
+                    'outputs': [PT_IS, PT_IS_STD]
                 }
             ],
         },
@@ -131,7 +147,7 @@ if __name__ == '__main__':
                         'use_torch': False,
                         'fid_stats_path': 'cifar10.test.npz',
                     },
-                    'outputs': [3.1517650331493883]
+                    'outputs': [NP_FID]
                 },
                 {
                     'inputs': {
@@ -139,7 +155,7 @@ if __name__ == '__main__':
                         'use_torch': True,
                         'fid_stats_path': 'cifar10.test.npz',
                     },
-                    'outputs': [3.137664794921875]
+                    'outputs': [PT_FID]
                 }
             ],
         },
@@ -157,9 +173,9 @@ if __name__ == '__main__':
                         'fid_stats_path': 'cifar10.test.npz',
                     },
                     'outputs': [
-                        11.267066921084192,
-                        0.2032413984924413,
-                        3.1517650331493883]
+                        NP_IS,
+                        NP_IS_STD,
+                        NP_FID]
                 },
                 {
                     'inputs': {
@@ -168,9 +184,9 @@ if __name__ == '__main__':
                         'fid_stats_path': 'cifar10.test.npz',
                     },
                     'outputs': [
-                        11.26706600189209,
-                        0.2142351269721985,
-                        3.137664794921875]
+                        PT_IS,
+                        PT_IS_STD,
+                        PT_FID]
                 }
             ],
         },

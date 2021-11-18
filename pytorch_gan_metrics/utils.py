@@ -1,4 +1,5 @@
 import os
+import copy
 from typing import List, Union, Tuple
 from glob import glob
 
@@ -26,8 +27,9 @@ class ImageDataset(Dataset):
 
     def __getitem__(self, idx):
         image = Image.open(self.paths[idx])
-        image = to_tensor(image)
-        return image
+        tensor = copy.deepcopy(to_tensor(image))
+        image.close()
+        return tensor
 
 
 def get_inception_score_and_fid(
