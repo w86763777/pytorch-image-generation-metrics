@@ -25,8 +25,8 @@ pip install pytorch-gan-metrics
 |                   |Train IS  |Test IS   |Train(50k) vs Test(10k)<br>FID|
 |-------------------|:--------:|:--------:|:----------------------------:|
 |Official           |11.24±0.20|10.98±0.22|3.1508                        |
-|pytorch-gan-metrics|11.26±0.27|10.97±0.33|3.1517                        |
-|pytorch-gan-metrics<br>`use_torch=True`|11.26±0.21|10.97±0.34|3.1377                        |
+|pytorch-gan-metrics|11.26±0.08|10.97±0.32|3.1517                        |
+|pytorch-gan-metrics<br>`use_torch=True`|11.26±0.08|10.97±0.34|3.1455                        |
     
 The results are slightly different from official implementations due to the framework difference between PyTorch and TensorFlow.
 
