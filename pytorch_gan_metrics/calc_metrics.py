@@ -22,5 +22,8 @@ if __name__ == "__main__":
     dataset = ImageDataset(root=args.path, num_images=args.num_images)
     loader = DataLoader(dataset, batch_size=50, num_workers=4)
     (IS, IS_std), FID = get_inception_score_and_fid(
-        loader, args.stats, use_torch=args.use_torch, verbose=True)
+        loader,
+        args.stats,
+        use_torch=args.use_torch,
+        verbose=True)
     print(IS, IS_std, FID)

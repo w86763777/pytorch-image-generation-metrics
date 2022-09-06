@@ -3,6 +3,7 @@ from packaging import version
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
+import torchvision
 from torchvision import models
 from torch.hub import load_state_dict_from_url
 
@@ -10,7 +11,7 @@ from torch.hub import load_state_dict_from_url
 # http://download.tensorflow.org/models/image/imagenet/inception-2015-12-05.tgz
 FID_WEIGHTS_URL = ('https://github.com/w86763777/pytorch-gan-metrics/releases/'
                    'download/v0.1.0/pt_inception-2015-12-05-6726825d.pth')
-TORCH_VERSION = version.parse(torch.__version__)
+TORCH_VERSION = version.parse(torchvision.__version__)
 
 
 class InceptionV3(nn.Module):

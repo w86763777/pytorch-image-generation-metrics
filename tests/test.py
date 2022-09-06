@@ -42,9 +42,10 @@ def download_cifar10(root):
         x.save(os.path.join(root, f'test/{i + 1}.png'))
 
 
-def test_calc_and_save_stats(input_path, output_path):
+def test_calc_and_save_stats(input_path, output_path, use_torch):
     calc_and_save_stats(
-        input_path, output_path, num_workers=num_workers, verbose=False)
+        input_path, output_path, use_torch=use_torch,
+        num_workers=num_workers, verbose=False)
     return None
 
 
@@ -126,33 +127,53 @@ def create_test(test_fn, inputs, expected_outputs):
     return do_test_expected
 
 
-if __name__ == '__main__':
-    # CUDA 10.2 CIFAR10
-    NP_IS = 11.265363978062746
-    PT_IS = 11.265363693237305
-    NP_IS_STD = 0.08081806306810498
-    PT_IS_STD = 0.08519038558006287
-    NP_FID = 3.151765556578084
-    PT_FID = 3.145416259765625
+def main(name, results_root):
+    # Py39, torch1.12.1, CUDA 10.2, CIFAR10
+    NP_IS = 11.263923779476338
+    PT_IS = 11.263922691345215
+    NP_IS_STD = 0.1446554877884545
+    PT_IS_STD = 0.15248057246208190
+    NP_FID = 3.151765033148024
+    PT_FID = 3.150909423828125
 
-    PATH_CIFAR10 = "./tests/cifar10"
-    PATH_CIFAR10_TRAIN = "./tests/cifar10/train"
-    PATH_CIFAR10_TEST = "./tests/cifar10/test"
-    PATH_CIFAR10_STATS_TRAIN = './tests/stats/cifar10.train.npz'
-    PATH_CIFAR10_STATS_TEST = './tests/stats/cifar10.test.npz'
+    PATH_CIFAR10 = f"{results_root}/cifar10"
+    PATH_CIFAR10_TRAIN = f"{results_root}/cifar10/train"
+    PATH_CIFAR10_TEST = f"{results_root}/cifar10/test"
+    PATH_CIFAR10_STATS_NP_TRAIN = f'{results_root}/{name}/cifar10.train.npz'
+    PATH_CIFAR10_STATS_NP_TEST = f'{results_root}/{name}/cifar10.test.npz'
+    PATH_CIFAR10_STATS_PT_TRAIN = f'{results_root}/{name}/cifar10.train.pt.npz'
+    PATH_CIFAR10_STATS_PT_TEST = f'{results_root}/{name}/cifar10.test.pt.npz'
 
     configs_calc_stats = [
         {
             'inputs': {
                 'input_path': PATH_CIFAR10_TRAIN,
-                'output_path': PATH_CIFAR10_STATS_TRAIN,
+                'output_path': PATH_CIFAR10_STATS_NP_TRAIN,
+                'use_torch': False,
+            },
+            'expected_outputs': None,
+        },
+        {
+            'inputs': {
+                'input_path': PATH_CIFAR10_TRAIN,
+                'output_path': PATH_CIFAR10_STATS_PT_TRAIN,
+                'use_torch': True,
             },
             'expected_outputs': None,
         },
         {
             'inputs': {
                 'input_path': PATH_CIFAR10_TEST,
-                'output_path': PATH_CIFAR10_STATS_TEST,
+                'output_path': PATH_CIFAR10_STATS_NP_TEST,
+                'use_torch': False,
+            },
+            'expected_outputs': None,
+        },
+        {
+            'inputs': {
+                'input_path': PATH_CIFAR10_TEST,
+                'output_path': PATH_CIFAR10_STATS_PT_TEST,
+                'use_torch': True,
             },
             'expected_outputs': None,
         },
@@ -192,7 +213,7 @@ if __name__ == '__main__':
                     'inputs': {
                         'path': PATH_CIFAR10_TRAIN,
                         'use_torch': False,
-                        'fid_stats_path': PATH_CIFAR10_STATS_TEST,
+                        'fid_stats_path': PATH_CIFAR10_STATS_NP_TEST,
                     },
                     'expected_outputs': [NP_FID]
                 },
@@ -200,7 +221,7 @@ if __name__ == '__main__':
                     'inputs': {
                         'path': PATH_CIFAR10_TRAIN,
                         'use_torch': True,
-                        'fid_stats_path': PATH_CIFAR10_STATS_TEST,
+                        'fid_stats_path': PATH_CIFAR10_STATS_PT_TEST,
                     },
                     'expected_outputs': [PT_FID]
                 }
@@ -217,7 +238,7 @@ if __name__ == '__main__':
                     'inputs': {
                         'path': PATH_CIFAR10_TRAIN,
                         'use_torch': False,
-                        'fid_stats_path': PATH_CIFAR10_STATS_TEST,
+                        'fid_stats_path': PATH_CIFAR10_STATS_NP_TEST,
                     },
                     'expected_outputs': [
                         NP_IS,
@@ -228,7 +249,7 @@ if __name__ == '__main__':
                     'inputs': {
                         'path': PATH_CIFAR10_TRAIN,
                         'use_torch': True,
-                        'fid_stats_path': PATH_CIFAR10_STATS_TEST,
+                        'fid_stats_path': PATH_CIFAR10_STATS_PT_TEST,
                     },
                     'expected_outputs': [
                         PT_IS,
@@ -260,4 +281,10 @@ if __name__ == '__main__':
                 setattr(AllTestCase, test_method.__name__, test_method)
 
     download_cifar10(root=PATH_CIFAR10)
-    unittest.main(verbosity=2)
+    unittest.main(verbosity=2, failfast=True)
+
+
+if __name__ == '__main__':
+    NAME = os.environ.get('ENV_NAME')
+    RESULTS_ROOT = os.environ.get('RESULTS_ROOT')
+    main(NAME, RESULTS_ROOT)

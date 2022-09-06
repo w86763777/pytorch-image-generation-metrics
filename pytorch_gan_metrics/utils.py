@@ -1,17 +1,19 @@
 import os
-from typing import List, Union, Tuple
+from typing import List, Union, Tuple, Optional
 from glob import glob
 
 import numpy as np
 import torch
 from PIL import Image
 from torch.utils.data import Dataset, DataLoader
+from torchvision.transforms import Compose, Resize, ToTensor
 from torchvision.transforms.functional import to_tensor
 
 from .core import (
     get_inception_feature,
     calculate_inception_score,
-    calculate_frechet_inception_distance)
+    calculate_frechet_inception_distance,
+    torch_cov)
 
 
 class ImageDataset(Dataset):
@@ -204,3 +206,45 @@ def get_inception_score_from_directory(
         splits=splits,
         use_torch=use_torch,
         **kwargs)
+
+
+def calc_and_save_stats(
+    input_path: str,
+    output_path: str,
+    batch_size: int = 50,
+    img_size: Optional[int] = None,
+    use_torch: bool = False,
+    num_workers: int = os.cpu_count(),
+    verbose: bool = True,
+) -> None:
+    """Calculate the FID statistics and save them to a file.
+
+    Args:
+        input_path (str): Path to the image directory.
+        output_path (str): Path to the output file.
+        batch_size (int): Batch size. Defaults to 50.
+        img_size (int): Image size. If None, use the original image size.
+        num_workers (int): Number of dataloader workers. Default:
+                           os.cpu_count().
+    """
+    if img_size is not None:
+        transform = Compose([Resize([img_size, img_size]), ToTensor()])
+    else:
+        transform = ToTensor()
+
+    dataset = ImageDataset(root=input_path, transform=transform)
+    loader = DataLoader(
+        dataset, batch_size=batch_size, num_workers=num_workers)
+    acts, = get_inception_feature(
+        loader, dims=[2048], use_torch=use_torch, verbose=verbose)
+
+    if use_torch:
+        mu = torch.mean(acts, dim=0).cpu().numpy()
+        sigma = torch_cov(acts, rowvar=False).cpu().numpy()
+    else:
+        mu = np.mean(acts, axis=0)
+        sigma = np.cov(acts, rowvar=False)
+
+    if os.path.dirname(output_path) != "":
+        os.makedirs(os.path.dirname(output_path), exist_ok=True)
+    np.savez_compressed(output_path, mu=mu, sigma=sigma)

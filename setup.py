@@ -9,9 +9,12 @@ def read(rel_path):
 
 
 if __name__ == '__main__':
+    with open('./pytorch_gan_metrics/version.py') as f:
+        __version__ = f.read().split('=')[1].strip().strip("'")
+
     setuptools.setup(
         name='pytorch_gan_metrics',
-        version='0.5.1',
+        version=__version__,
         author='Yi-Lun Wu',
         author_email='w86763777@gmail.com',
         description=('Package for calculating GAN metrics using Pytorch'),
