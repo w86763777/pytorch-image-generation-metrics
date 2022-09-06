@@ -1,5 +1,4 @@
 import os
-import copy
 from typing import List, Union, Tuple
 from glob import glob
 
@@ -16,20 +15,27 @@ from .core import (
 
 
 class ImageDataset(Dataset):
-    def __init__(self, path, exts=['png', 'jpg']):
+    def __init__(self, root, exts=['png', 'jpg', 'JPEG'], transform=None,
+                 num_images=None):
         self.paths = []
+        self.transform = transform
         for ext in exts:
             self.paths.extend(
-                list(glob(os.path.join(path, '*.%s' % ext))))
+                list(glob(
+                    os.path.join(root, '**/*.%s' % ext), recursive=True)))
+        self.paths = self.paths[:num_images]
 
     def __len__(self):
         return len(self.paths)
 
     def __getitem__(self, idx):
         image = Image.open(self.paths[idx])
-        tensor = copy.deepcopy(to_tensor(image))
-        image.close()
-        return tensor
+        image = image.convert('RGB')        # fix ImageNet grayscale images
+        if self.transform is not None:
+            image = self.transform(image)
+        else:
+            image = to_tensor(image)
+        return image
 
 
 def get_inception_score_and_fid(

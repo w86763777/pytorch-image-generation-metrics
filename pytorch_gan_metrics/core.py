@@ -138,7 +138,7 @@ def sqrt_newton_schulz(A, numIters, dtype=None):
             T = 0.5 * (3.0 * K - Z.bmm(Y))
             Y = Y.bmm(T)
             Z = T.bmm(Z)
-        sA = Y*torch.sqrt(normA).view(batchSize, 1, 1).expand_as(A)
+        sA = Y * torch.sqrt(normA).view(batchSize, 1, 1).expand_as(A)
     return sA
 
 

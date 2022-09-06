@@ -2,6 +2,7 @@
 
 cifar10
 stats
+gold
 *.npz
 
 venv

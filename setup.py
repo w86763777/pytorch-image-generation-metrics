@@ -11,7 +11,7 @@ def read(rel_path):
 if __name__ == '__main__':
     setuptools.setup(
         name='pytorch_gan_metrics',
-        version='0.4.1',
+        version='0.5.1',
         author='Yi-Lun Wu',
         author_email='w86763777@gmail.com',
         description=('Package for calculating GAN metrics using Pytorch'),
@@ -33,9 +33,10 @@ if __name__ == '__main__':
         ],
         python_requires='>=3.6',
         install_requires=[
-            'tqdm',
-            'scipy==1.5.4',
-            'torch>=1.8.0',
-            'torchvision>=0.9.0',
+            "packaging",
+            "tqdm",
+            "scipy",
+            "torch>=1.8.2",
+            "torchvision>=0.9.2",
         ],
     )

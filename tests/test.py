@@ -2,8 +2,10 @@ import unittest
 import os
 
 import torch
-from torch.utils.data import DataLoader
 import torch.multiprocessing
+from torchvision.utils import save_image
+from torchvision.datasets import CIFAR10
+from torch.utils.data import DataLoader
 
 from pytorch_gan_metrics.utils import (
     ImageDataset,
@@ -13,6 +15,8 @@ from pytorch_gan_metrics.utils import (
     get_fid_from_directory,
     get_inception_score_and_fid,
     get_inception_score_and_fid_from_directory)
+
+from pytorch_gan_metrics.calc_fid_stats import calc_and_save_stats
 
 # Fix RuntimeError: Too many open files.
 torch.multiprocessing.set_sharing_strategy('file_system')
@@ -25,6 +29,23 @@ else:
 
 class AllTestCase(unittest.TestCase):
     pass
+
+
+def download_cifar10(root):
+    dataset_train = CIFAR10(root, train=True, download=True)
+    dataset_test = CIFAR10(root, train=False, download=True)
+    os.makedirs(os.path.join(root, 'train'), exist_ok=True)
+    os.makedirs(os.path.join(root, 'test'), exist_ok=True)
+    for i, (x, _) in enumerate(dataset_train):
+        x.save(os.path.join(root, f'train/{i + 1}.png'))
+    for i, (x, _) in enumerate(dataset_test):
+        x.save(os.path.join(root, f'test/{i + 1}.png'))
+
+
+def test_calc_and_save_stats(input_path, output_path):
+    calc_and_save_stats(
+        input_path, output_path, num_workers=num_workers, verbose=False)
+    return None
 
 
 def test_inception_score_dataloader(path, use_torch):
@@ -94,23 +115,49 @@ def test_inception_score_and_fid_from_directory(
 
 
 def create_test(test_fn, inputs, expected_outputs):
-    def do_test_expected(self):
+    def do_test_expected(self: AllTestCase):
         outputs = test_fn(**inputs)
+        if outputs is None:
+            return
         for output, expected_output in zip(outputs, expected_outputs):
             relative_err = abs((output - expected_output) / expected_output)
-            self.assertLess(relative_err, 1e-4)
+            self.assertLess(
+                relative_err, 1e-4, msg=f'{output} != {expected_output}')
     return do_test_expected
 
 
 if __name__ == '__main__':
-    # CUDA 10.2
+    # CUDA 10.2 CIFAR10
     NP_IS = 11.265363978062746
-    NP_IS_STD = 0.08081806306810498
-    NP_FID = 3.151765556578084
     PT_IS = 11.265363693237305
+    NP_IS_STD = 0.08081806306810498
     PT_IS_STD = 0.08519038558006287
+    NP_FID = 3.151765556578084
     PT_FID = 3.145416259765625
-    configs = [
+
+    PATH_CIFAR10 = "./tests/cifar10"
+    PATH_CIFAR10_TRAIN = "./tests/cifar10/train"
+    PATH_CIFAR10_TEST = "./tests/cifar10/test"
+    PATH_CIFAR10_STATS_TRAIN = './tests/stats/cifar10.train.npz'
+    PATH_CIFAR10_STATS_TEST = './tests/stats/cifar10.test.npz'
+
+    configs_calc_stats = [
+        {
+            'inputs': {
+                'input_path': PATH_CIFAR10_TRAIN,
+                'output_path': PATH_CIFAR10_STATS_TRAIN,
+            },
+            'expected_outputs': None,
+        },
+        {
+            'inputs': {
+                'input_path': PATH_CIFAR10_TEST,
+                'output_path': PATH_CIFAR10_STATS_TEST,
+            },
+            'expected_outputs': None,
+        },
+    ]
+    configs_calc_metrics = [
         {
             'test_fns': [
                 test_inception_score_dataloader,
@@ -120,17 +167,17 @@ if __name__ == '__main__':
             'args': [
                 {
                     'inputs': {
-                        'path': './cifar10/train',
+                        'path': PATH_CIFAR10_TRAIN,
                         'use_torch': False
                     },
-                    'outputs': [NP_IS, NP_IS_STD]
+                    'expected_outputs': [NP_IS, NP_IS_STD]
                 },
                 {
                     'inputs': {
-                        'path': './cifar10/train',
+                        'path': PATH_CIFAR10_TRAIN,
                         'use_torch': True
                     },
-                    'outputs': [PT_IS, PT_IS_STD]
+                    'expected_outputs': [PT_IS, PT_IS_STD]
                 }
             ],
         },
@@ -143,19 +190,19 @@ if __name__ == '__main__':
             'args': [
                 {
                     'inputs': {
-                        'path': './cifar10/train',
+                        'path': PATH_CIFAR10_TRAIN,
                         'use_torch': False,
-                        'fid_stats_path': 'cifar10.test.npz',
+                        'fid_stats_path': PATH_CIFAR10_STATS_TEST,
                     },
-                    'outputs': [NP_FID]
+                    'expected_outputs': [NP_FID]
                 },
                 {
                     'inputs': {
-                        'path': './cifar10/train',
+                        'path': PATH_CIFAR10_TRAIN,
                         'use_torch': True,
-                        'fid_stats_path': 'cifar10.test.npz',
+                        'fid_stats_path': PATH_CIFAR10_STATS_TEST,
                     },
-                    'outputs': [PT_FID]
+                    'expected_outputs': [PT_FID]
                 }
             ],
         },
@@ -168,22 +215,22 @@ if __name__ == '__main__':
             'args': [
                 {
                     'inputs': {
-                        'path': './cifar10/train',
+                        'path': PATH_CIFAR10_TRAIN,
                         'use_torch': False,
-                        'fid_stats_path': 'cifar10.test.npz',
+                        'fid_stats_path': PATH_CIFAR10_STATS_TEST,
                     },
-                    'outputs': [
+                    'expected_outputs': [
                         NP_IS,
                         NP_IS_STD,
                         NP_FID]
                 },
                 {
                     'inputs': {
-                        'path': './cifar10/train',
+                        'path': PATH_CIFAR10_TRAIN,
                         'use_torch': True,
-                        'fid_stats_path': 'cifar10.test.npz',
+                        'fid_stats_path': PATH_CIFAR10_STATS_TEST,
                     },
-                    'outputs': [
+                    'expected_outputs': [
                         PT_IS,
                         PT_IS_STD,
                         PT_FID]
@@ -191,14 +238,26 @@ if __name__ == '__main__':
             ],
         },
     ]
-    for config in configs:
-        for test_fn in config['test_fns']:
-            for k, arg in enumerate(config['args']):
+
+    for k, args in enumerate(configs_calc_stats):
+        test_method = create_test(
+            test_fn=test_calc_and_save_stats,
+            inputs=args['inputs'],
+            expected_outputs=args['expected_outputs'],
+        )
+        test_method.__name__ = f'{test_calc_and_save_stats.__name__}_{k}'
+        setattr(AllTestCase, test_method.__name__, test_method)
+
+    for config_group in configs_calc_metrics:
+        for test_fn in config_group['test_fns']:
+            for k, args in enumerate(config_group['args']):
                 test_method = create_test(
                     test_fn=test_fn,
-                    inputs=arg['inputs'],
-                    expected_outputs=arg['outputs'],
+                    inputs=args['inputs'],
+                    expected_outputs=args['expected_outputs'],
                 )
                 test_method.__name__ = f'{test_fn.__name__}_{k}'
                 setattr(AllTestCase, test_method.__name__, test_method)
+
+    download_cifar10(root=PATH_CIFAR10)
     unittest.main(verbosity=2)
