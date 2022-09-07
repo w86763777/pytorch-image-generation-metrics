@@ -1,3 +1,5 @@
+"""The core implementation of Inception Score and FID."""
+
 from typing import List, Union, Tuple
 
 import numpy as np
@@ -21,24 +23,21 @@ def get_inception_feature(
     device: torch.device = torch.device('cuda:0'),
 ) -> Union[torch.FloatTensor, np.ndarray]:
     """Calculate Inception Score and FID.
-    For each image, only a forward propagation is required to
-    calculating features for FID and Inception Score.
+
+    For each image, only a forward propagation is required to calculating
+    features for FID and Inception Score.
 
     Args:
         images: List of tensor or torch.utils.data.Dataloader. The return image
-            must be float tensor of range [0, 1].
+                must be float tensor of range [0, 1].
         dims: List of int, see InceptionV3.BLOCK_INDEX_BY_DIM for
-            available dimension.
+              available dimension.
         batch_size: int, The batch size for calculating activations. If
-            `images` is torch.utils.data.Dataloader, this argument is
-            ignored.
-        use_torch: bool. The default value is False and the backend is same as
-            official implementation, i.e., numpy. If use_torch is enableb,
-            the backend linalg is implemented by torch, the results are not
-            guaranteed to be consistent with numpy, but the speed can be
-            accelerated by GPU.
+                    `images` is torch.utils.data.Dataloader, this argument is
+                    ignored.
+        use_torch: When True, use torch to calculate FID. Otherwise, use numpy.
         verbose: Set verbose to False for disabling progress bar. Otherwise,
-            the progress bar is showing when calculating activations.
+                 the progress bar is showing when calculating activations.
         device: the torch device which is used to calculate inception feature
     Returns:
         inception_score: float tuple, (mean, std)
@@ -91,22 +90,25 @@ def get_inception_feature(
 
 
 def torch_cov(m, rowvar=False):
-    '''Estimate a covariance matrix given data.
+    """Estimate a covariance matrix given data.
+
     Covariance indicates the level to which two variables vary together.
     If we examine N-dimensional samples, `X = [x_1, x_2, ... x_N]^T`,
     then the covariance matrix element `C_{ij}` is the covariance of
     `x_i` and `x_j`. The element `C_{ii}` is the variance of `x_i`.
+
     Args:
         m: A 1-D or 2-D array containing multiple variables and observations.
-            Each row of `m` represents a variable, and each column a single
-            observation of all those variables.
+           Each row of `m` represents a variable, and each column a single
+           observation of all those variables.
         rowvar: If `rowvar` is True, then each row represents a
-            variable, with observations in the columns. Otherwise, the
-            relationship is transposed: each column represents a variable,
-            while the rows contain observations.
+                variable, with observations in the columns. Otherwise, the
+                relationship is transposed: each column represents a variable,
+                while the rows contain observations.
+
     Returns:
         The covariance matrix of the variables.
-    '''
+    """
     if m.dim() > 2:
         raise ValueError('m has more than 2 dimensions')
     if m.dim() < 2:
@@ -122,7 +124,7 @@ def torch_cov(m, rowvar=False):
 
 # Pytorch implementation of matrix sqrt, from Tsung-Yu Lin, and Subhransu Maji
 # https://github.com/msubhransu/matrix-sqrt
-def sqrt_newton_schulz(A, numIters, dtype=None):
+def sqrt_newton_schulz(A, numIters, dtype=None): # noqa
     with torch.no_grad():
         if dtype is None:
             dtype = A.type()
@@ -149,7 +151,7 @@ def calculate_frechet_inception_distance(
     use_torch: bool = False,
     eps: float = 1e-6,
     device: torch.device = torch.device('cuda:0'),
-) -> float:
+) -> float: # noqa
     if use_torch:
         m1 = torch.mean(acts, axis=0)
         s1 = torch_cov(acts, rowvar=False)
@@ -169,21 +171,20 @@ def calculate_frechet_distance(
     use_torch: bool = False,
     eps: float = 1e-6,
 ) -> float:
-    """Frechet Distance
+    """Calculate Frechet Distance.
+
     Args:
-        mu1: The sample mean over activations for generated samples.
-        mu2: The sample mean over activations, precalculated on an reference
-            data set.
-        sigma1: The covariance matrix over activations for generated samples.
-        sigma2: The covariance matrix over activations, precalculated on an
-            reference data set.
+        mu1: The sample mean over activations for a set of samples.
+        sigma1: The covariance matrix over activations for a set of samples.
+        mu2: The sample mean over activations for another set of samples.
+        sigma2: The covariance matrix over activations for another set of
+                samples.
+        use_torch: When True, use torch to calculate FID. Otherwise, use numpy.
         eps: prevent covmean from being singular matrix
-        use_torch: use torch as backend
 
     Returns:
         The Frechet Distance.
     """
-
     if use_torch:
         assert mu1.shape == mu2.shape, \
             'Training and test mean vectors have different lengths'
@@ -244,7 +245,7 @@ def calculate_inception_score(
     probs: Union[torch.FloatTensor, np.ndarray],
     splits: int = 10,
     use_torch: bool = False,
-) -> Tuple[float, float]:
+) -> Tuple[float, float]: # noqa
     # Inception Score
     scores = []
     for i in range(splits):

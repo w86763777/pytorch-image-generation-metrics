@@ -6,4 +6,5 @@ torchvision>=0.9.2
 
 tox
 twine
-pycodestyle
+pydocstyle
+wheel

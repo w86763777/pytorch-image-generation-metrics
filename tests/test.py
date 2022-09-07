@@ -3,7 +3,6 @@ import os
 
 import torch
 import torch.multiprocessing
-from torchvision.utils import save_image
 from torchvision.datasets import CIFAR10
 from torch.utils.data import DataLoader
 

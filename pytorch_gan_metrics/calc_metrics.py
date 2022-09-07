@@ -1,3 +1,5 @@
+"""Calculate FID and Inception Score of images in a directory."""
+
 import argparse
 
 from torch.utils.data import DataLoader

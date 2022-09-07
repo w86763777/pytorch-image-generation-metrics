@@ -1,3 +1,5 @@
+"""Inception Model v3 for FID computation."""
+
 from packaging import version
 
 import torch
@@ -15,7 +17,7 @@ TORCH_VERSION = version.parse(torchvision.__version__)
 
 
 class InceptionV3(nn.Module):
-    """Pretrained InceptionV3 network returning feature maps"""
+    """Pretrained InceptionV3 network returning feature maps."""
 
     # Index of default block of inception to return,
     # corresponds to output of final average pooling
@@ -36,7 +38,7 @@ class InceptionV3(nn.Module):
                  normalize_input=True,
                  requires_grad=False,
                  use_fid_inception=True):
-        """Build pretrained InceptionV3
+        """Build pretrained InceptionV3.
 
         Args:
             output_blocks : List of int
@@ -141,7 +143,7 @@ class InceptionV3(nn.Module):
             param.requires_grad = requires_grad
 
     def forward(self, x):
-        """Get Inception feature maps
+        """Get Inception feature maps.
 
         Args:
             x : torch.FloatTensor,Input tensor of shape [B x 3 x H x W]. If
@@ -183,7 +185,7 @@ class InceptionV3(nn.Module):
 
 
 def fid_inception_v3():
-    """Build pretrained Inception model for FID computation
+    """Build pretrained Inception model for FID computation.
 
     The Inception model for FID computation uses a different set of weights
     and has a slightly different structure than torchvision's Inception.
@@ -221,11 +223,12 @@ def fid_inception_v3():
 
 
 class FIDInceptionA(models.inception.InceptionA):
-    """InceptionA block patched for FID computation"""
-    def __init__(self, in_channels, pool_features):
+    """InceptionA block patched for FID computation."""
+
+    def __init__(self, in_channels, pool_features): # noqa
         super(FIDInceptionA, self).__init__(in_channels, pool_features)
 
-    def forward(self, x):
+    def forward(self, x):                           # noqa
         branch1x1 = self.branch1x1(x)
 
         branch5x5 = self.branch5x5_1(x)
@@ -246,11 +249,12 @@ class FIDInceptionA(models.inception.InceptionA):
 
 
 class FIDInceptionC(models.inception.InceptionC):
-    """InceptionC block patched for FID computation"""
-    def __init__(self, in_channels, channels_7x7):
+    """InceptionC block patched for FID computation."""
+
+    def __init__(self, in_channels, channels_7x7):  # noqa
         super(FIDInceptionC, self).__init__(in_channels, channels_7x7)
 
-    def forward(self, x):
+    def forward(self, x):                           # noqa
         branch1x1 = self.branch1x1(x)
 
         branch7x7 = self.branch7x7_1(x)
@@ -274,11 +278,12 @@ class FIDInceptionC(models.inception.InceptionC):
 
 
 class FIDInceptionE_1(models.inception.InceptionE):
-    """First InceptionE block patched for FID computation"""
-    def __init__(self, in_channels):
+    """First InceptionE block patched for FID computation."""
+
+    def __init__(self, in_channels):    # noqa
         super(FIDInceptionE_1, self).__init__(in_channels)
 
-    def forward(self, x):
+    def forward(self, x):               # noqa
         branch1x1 = self.branch1x1(x)
 
         branch3x3 = self.branch3x3_1(x)
@@ -307,11 +312,12 @@ class FIDInceptionE_1(models.inception.InceptionE):
 
 
 class FIDInceptionE_2(models.inception.InceptionE):
-    """Second InceptionE block patched for FID computation"""
-    def __init__(self, in_channels):
+    """Second InceptionE block patched for FID computation."""
+
+    def __init__(self, in_channels):    # noqa
         super(FIDInceptionE_2, self).__init__(in_channels)
 
-    def forward(self, x):
+    def forward(self, x):               # noqa
         branch1x1 = self.branch1x1(x)
 
         branch3x3 = self.branch3x3_1(x)

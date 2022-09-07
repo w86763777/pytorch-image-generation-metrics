@@ -1,4 +1,6 @@
-import version
+"""Export public API."""
+
+from .version import __version__
 
 from pytorch_gan_metrics.utils import (
     ImageDataset,
@@ -9,8 +11,6 @@ from pytorch_gan_metrics.utils import (
     get_inception_score_and_fid,
     get_inception_score_and_fid_from_directory)
 
-__version__ = open('version.py').read().split('=')[1].strip().strip("'")
-
 __all__ = [
     ImageDataset,
     get_inception_score,
@@ -19,4 +19,5 @@ __all__ = [
     get_fid_from_directory,
     get_inception_score_and_fid,
     get_inception_score_and_fid_from_directory,
+    __version__,
 ]

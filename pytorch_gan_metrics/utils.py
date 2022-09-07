@@ -1,3 +1,5 @@
+"""The public API of pytorch_gan_metrics."""
+
 import os
 from typing import List, Union, Tuple, Optional
 from glob import glob
@@ -17,8 +19,21 @@ from .core import (
 
 
 class ImageDataset(Dataset):
+    """An simple image dataset for calculating inception score and FID."""
+
     def __init__(self, root, exts=['png', 'jpg', 'JPEG'], transform=None,
                  num_images=None):
+        """Construct an image dataset.
+
+        Args:
+            root: Path to the image directory. This directory will be
+                  recursively searched.
+            exts: List of extensions to search for.
+            transform: A torchvision transform to apply to the images. If
+                       None, the images will be converted to tensors.
+            num_images: The number of images to load. If None, all images
+                        will be loaded.
+        """
         self.paths = []
         self.transform = transform
         for ext in exts:
@@ -27,10 +42,10 @@ class ImageDataset(Dataset):
                     os.path.join(root, '**/*.%s' % ext), recursive=True)))
         self.paths = self.paths[:num_images]
 
-    def __len__(self):
+    def __len__(self):              # noqa
         return len(self.paths)
 
-    def __getitem__(self, idx):
+    def __getitem__(self, idx):     # noqa
         image = Image.open(self.paths[idx])
         image = image.convert('RGB')        # fix ImageNet grayscale images
         if self.transform is not None:
@@ -48,21 +63,18 @@ def get_inception_score_and_fid(
     **kwargs,
 ) -> Tuple[Tuple[float, float], float]:
     """Calculate Inception Score and FID.
+
     For each image, only a forward propagation is required to
     calculating features for FID and Inception Score.
 
     Args:
         images: List of tensor or torch.utils.data.Dataloader. The return image
                 must be float tensor of range [0, 1].
-        fid_stats_path: str, Path to pre-calculated statistic
-        splits: The number of bins of Inception Score. Default is 10.
-        use_torch: bool. The default value is False and the backend is same as
-                   official implementation, i.e., numpy. If use_torch is
-                   enableb, the backend linalg is implemented by torch, the
-                   results are not guaranteed to be consistent with numpy, but
-                   the speed can be accelerated by GPU.
-        **kwargs: Please refer to `core.get_inception_feature` for other
-                  arguments.
+        fid_stats_path: Path to pre-calculated statistic.
+        splits: The number of bins of Inception Score.
+        use_torch: When True, use torch to calculate FID. Otherwise, use numpy.
+        **kwargs: The arguments passed to
+                  `pytorch_gan_metrics.core.get_inception_feature`.
     Returns:
         inception_score: float tuple, (mean, std)
         fid: float
@@ -91,14 +103,18 @@ def get_inception_score_and_fid_from_directory(
     use_torch: bool = False,
     **kwargs
 ) -> Tuple[Tuple[float, float], float]:
-    """Calculate Inception Score and FID of images in a directory
-    Please refer to `get_inception_score_and_fid` for the arguments
-    descriptions.
+    """Calculate Inception Score and FID of images in a directory.
 
     Args:
-        path: path to a image directory. It does not recursively inspect
-        the subfolders.
-        exts: target file extentions
+        path: Path to the image directory. This function will recursively find
+              images in all subfolders.
+        fid_stats_path: Path to pre-calculated statistic.
+        exts: List of extensions to search for.
+        batch_size: Batch size of DataLoader.
+        splits: The number of bins of Inception Score.
+        use_torch: When True, use torch to calculate FID. Otherwise, use numpy.
+        **kwargs: The arguments passed to
+                  `pytorch_gan_metrics.core.get_inception_feature`.
 
     Returns:
         Inception Score: float tuple, mean and std
@@ -116,13 +132,19 @@ def get_fid(
     fid_stats_path: str,
     use_torch: bool = False,
     **kwargs,
-) -> Tuple[Tuple[float, float], float]:
+) -> float:
     """Calculate Frechet Inception Distance.
-    Please refer to `get_inception_score_and_fid` for the arguments
-    descriptions.
+
+    Args:
+        images: List of tensor or torch.utils.data.Dataloader. The return image
+                must be float tensor of range [0, 1].
+        fid_stats_path: Path to pre-calculated statistic.
+        use_torch: When True, use torch to calculate FID. Otherwise, use numpy.
+        **kwargs: The arguments passed to
+                  `pytorch_gan_metrics.core.get_inception_feature`.
 
     Returns:
-        FID: float
+        FID
     """
     acts, = get_inception_feature(
         images, dims=[2048], use_torch=use_torch, **kwargs)
@@ -143,18 +165,20 @@ def get_fid_from_directory(
     batch_size: int = 50,
     use_torch: bool = False,
     **kwargs
-) -> Tuple[Tuple[float, float], float]:
-    """Calculate Frechet Inception Distance of images in a directory
-    Please refer to `get_inception_score_and_fid` for the arguments
-    descriptions.
+) -> float:
+    """Calculate Frechet Inception Distance of images in a directory.
 
     Args:
-        path: path to a image directory. It does not recursively inspect
-        the subfolders.
-        exts: target file extentions
+        path: Path to the image directory. This function will recursively find
+              images in all subfolders.
+        fid_stats_path: Path to pre-calculated statistic.
+        exts: List of extensions to search for.
+        use_torch: When True, use torch to calculate FID. Otherwise, use numpy.
+        **kwargs: The arguments passed to
+                  `pytorch_gan_metrics.core.get_inception_feature`.
 
     Returns:
-        FID: float
+        FID
     """
     return get_fid(
         images=DataLoader(ImageDataset(path, exts), batch_size=batch_size),
@@ -168,12 +192,19 @@ def get_inception_score(
     splits: int = 10,
     use_torch: bool = False,
     **kwargs,
-) -> Tuple[Tuple[float, float], float]:
+) -> Tuple[float, float]:
     """Calculate Inception Score.
-    Please refer to `get_inception_score_and_fid` for the arguments
-    descriptions.
+
+    Args:
+        images: List of tensor or torch.utils.data.Dataloader. The return image
+                must be float tensor of range [0, 1].
+        splits: The number of bins of Inception Score.
+        use_torch: When True, use torch to calculate FID. Otherwise, use numpy.
+        **kwargs: The arguments passed to
+                  `pytorch_gan_metrics.core.get_inception_feature`.
+
     Returns:
-        Inception Score: float tuple
+        Inception Score
     """
     probs, = get_inception_feature(
         images, dims=[1008], use_torch=use_torch, **kwargs)
@@ -189,14 +220,18 @@ def get_inception_score_from_directory(
     use_torch: bool = False,
     **kwargs
 ) -> Tuple[Tuple[float, float], float]:
-    """Calculate Frechet Inception Distance of images in a directory
-    Please refer to `get_inception_score_and_fid` for the arguments
-    descriptions.
+    """Calculate Frechet Inception Distance of images in a directory.
 
     Args:
-        path: path to a image directory. It does not recursively inspect
-        the subfolders.
-        exts: target file extentions
+        path: Path to the image directory. This function will recursively find
+              images in all subfolders.
+        splits: The number of bins of Inception Score.
+        exts: List of extensions to search for.
+        batch_size: Batch size of DataLoader.
+        use_torch: When True, use torch to calculate FID. Otherwise, use numpy.
+        **kwargs: The arguments passed to
+                  `pytorch_gan_metrics.core.get_inception_feature`.
+
 
     Returns:
         FID: float
@@ -220,7 +255,8 @@ def calc_and_save_stats(
     """Calculate the FID statistics and save them to a file.
 
     Args:
-        input_path (str): Path to the image directory.
+        input_path (str): Path to the image directory. This function will
+                          recursively find images in all subfolders.
         output_path (str): Path to the output file.
         batch_size (int): Batch size. Defaults to 50.
         img_size (int): Image size. If None, use the original image size.

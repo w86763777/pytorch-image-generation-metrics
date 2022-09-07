@@ -27,7 +27,7 @@ pip install pytorch-gan-metrics
 |Official           |11.24±0.20|10.98±0.22|3.1508                        |
 |pytorch-gan-metrics|11.26±0.14|10.96±0.35|3.1518                        |
 |pytorch-gan-metrics<br>`use_torch=True`|11.26±0.15|10.96±0.19|3.1509                        |
-    
+
 The results are slightly different from official implementations due to the framework difference between PyTorch and TensorFlow.
 
 ## Documentation
@@ -36,7 +36,7 @@ The results are slightly different from official implementations due to the fram
 - [Download](https://drive.google.com/drive/folders/1UBdzl6GtNMwNQ5U-4ESlIer43tNjiGJC?usp=sharing) precalculated statistics or
 - Calculate statistics for your custom dataset using command line tool
     ```bash
-    python -m pytorch_gan_metrics.calc_fid_stats --path path/to/images --output name.npz
+    python -m pytorch_gan_metrics.calc_fid_stats --path path/to/images --output path/to/statistics.npz
     ```
     See [calc_fid_stats.py](./pytorch_gan_metrics/calc_fid_stats.py) for implementation details.
 
@@ -55,7 +55,7 @@ When using `pytorch_gan_metrics` to get IS or FID, the `InceptionV3` will be loa
     IS, IS_std = get_inception_score(images)
     # Frechet Inception Distance
     FID = get_fid(images, 'path/to/statistics.npz')
-    # Inception Score + Frechet Inception Distance
+    # Inception Score & Frechet Inception Distance
     (IS, IS_std), FID = get_inception_score_and_fid(
         images, 'path/to/statistics.npz')
 
@@ -75,13 +75,13 @@ When using `pytorch_gan_metrics` to get IS or FID, the `InceptionV3` will be loa
         def __init__(self, G, z_dim):
             self.G = G
             self.z_dim = z_dim
-        
+
         def __len__(self):
             return 50000
-        
+
         def __getitem__(self, index):
             return self.G(torch.randn(1, self.z_dim).cuda())[0]
-    
+
     dataset = GeneratorDataset(G, z=128)
     loader = DataLoader(dataset, batch_size=50, num_workers=0)
     ```
@@ -106,11 +106,11 @@ When using `pytorch_gan_metrics` to get IS or FID, the `InceptionV3` will be loa
         get_inception_score_from_directory,
         get_fid_from_directory,
         get_inception_score_and_fid_from_directory)
-    
+
     IS, IS_std = get_inception_score_from_directory('path/to/images')
-    FID = get_fid_from_directory('path/to/images', fid_stats_path)
+    FID = get_fid_from_directory('path/to/images', 'path/to/statistics.npz')
     (IS, IS_std), FID = get_inception_score_and_fid_from_directory(
-        'path/to/images', fid_stats_path)
+        'path/to/images', 'path/to/statistics.npz')
     ```
 
 ### Accelerating Matrix Computation by PyTorch

@@ -1,3 +1,5 @@
+"""Calculate statistics for FID and save to a file."""
+
 import argparse
 import os
 
