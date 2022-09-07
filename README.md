@@ -24,7 +24,7 @@ The FID implementation is inspired from [pytorch-fid](https://github.com/mseitze
 
 This repository is developed for personal research. If you think this package can also benefit your life, please feel free to open issues.
 
-## Feature
+## Features
 - Currently, this package supports following metrics:
   - [Inception Score](https://github.com/openai/improved-gan) (IS)
   - [Fréchet Inception Distance](https://github.com/bioinf-jku/TTUR) (FID)
@@ -146,9 +146,9 @@ The results are slightly different from official implementations due to the fram
 - This option is recommended to be used when evaluating generative models on a server which is equipped with high efficiency GPUs while the cpu frequency is low.
 
 ## Tested Versions
-- `python 3.9 + torch 1.8.2`
-- `python 3.9 + torch 1.11.0`
-- `python 3.9 + torch 1.12.1`
+- `python 3.9 + torch 1.8.2 + CUDA 10.2`
+- `python 3.9 + torch 1.11.0 + CUDA 10.2`
+- `python 3.9 + torch 1.12.1 + CUDA 10.2`
 
 ## License
 
