@@ -48,7 +48,9 @@ The results are slightly different from official implementations due to the fram
 - [Download](https://drive.google.com/drive/folders/1UBdzl6GtNMwNQ5U-4ESlIer43tNjiGJC?usp=sharing) precalculated statistics or
 - Calculate statistics for your custom dataset using command line tool
     ```bash
-    python -m pytorch_gan_metrics.calc_fid_stats path/to/images path/to/statistics.npz
+    python -m pytorch_gan_metrics.calc_fid_stats \
+        --path path/to/images \
+        --stats path/to/statistics.npz
     ```
     See [calc_fid_stats.py](./pytorch_gan_metrics/calc_fid_stats.py) for details.
 
