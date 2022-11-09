@@ -5,7 +5,7 @@ from typing import List, Union, Tuple
 import numpy as np
 import torch
 from scipy import linalg
-from tqdm import tqdm
+from tqdm.auto import tqdm
 from torch.utils.data import DataLoader
 
 from .inception import InceptionV3

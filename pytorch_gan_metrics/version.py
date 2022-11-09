@@ -1,3 +1,3 @@
 """Version information for pytorch_gan_metrics."""
 
-__version__ = '0.5.1'
+__version__ = '0.5.2'
