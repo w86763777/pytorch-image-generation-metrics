@@ -22,7 +22,7 @@ if __name__ == "__main__":
     args = parser.parse_args()
 
     dataset = ImageDataset(root=args.path, num_images=args.num_images)
-    loader = DataLoader(dataset, batch_size=50, num_workers=4)
+    loader = DataLoader(dataset, batch_size=50, num_workers=args.num_workers)
     (IS, IS_std), FID = get_inception_score_and_fid(
         loader,
         args.stats,
