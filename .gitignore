@@ -15,3 +15,4 @@ pytorch_gan_metrics*
 .tox
 
 !pytorch_gan_metrics
+cheatsheet.sh

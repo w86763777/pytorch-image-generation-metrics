@@ -1,5 +1,7 @@
 import unittest
 import os
+import glob
+from packaging import version
 
 import torch
 import torch.multiprocessing
@@ -31,14 +33,17 @@ class AllTestCase(unittest.TestCase):
 
 
 def download_cifar10(root):
+    def save_dataset(dataset, root):
+        os.makedirs(root, exist_ok=True)
+        for i, (x, _) in enumerate(dataset):
+            x.save(os.path.join(root, f'{i + 1}.png'))
+
     dataset_train = CIFAR10(root, train=True, download=True)
     dataset_test = CIFAR10(root, train=False, download=True)
-    os.makedirs(os.path.join(root, 'train'), exist_ok=True)
-    os.makedirs(os.path.join(root, 'test'), exist_ok=True)
-    for i, (x, _) in enumerate(dataset_train):
-        x.save(os.path.join(root, f'train/{i + 1}.png'))
-    for i, (x, _) in enumerate(dataset_test):
-        x.save(os.path.join(root, f'test/{i + 1}.png'))
+    if len(glob.glob(os.path.join(root, 'train/*.png'))) != len(dataset_train):
+        save_dataset(dataset_train, root=os.path.join(root, 'train'))
+    if len(glob.glob(os.path.join(root, 'test/*.png'))) != len(dataset_test):
+        save_dataset(dataset_test, root=os.path.join(root, 'test'))
 
 
 def test_calc_and_save_stats(input_path, output_path, use_torch):
@@ -127,13 +132,19 @@ def create_test(test_fn, inputs, expected_outputs):
 
 
 def main(name, results_root):
-    # Py39, torch1.12.1, CUDA 10.2, CIFAR10
-    NP_IS = 11.263923779476338
-    PT_IS = 11.263922691345215
-    NP_IS_STD = 0.1446554877884545
-    PT_IS_STD = 0.15248057246208190
-    NP_FID = 3.151765033148024
-    PT_FID = 3.150909423828125
+    NP_IS = 11.266389361376415
+    NP_IS_STD = 0.12747043851005244
+    NP_FID = 3.1517684858024495
+    if version.parse(torch.__version__).base_version == '2.0.1':
+        PT_IS = 11.266389846801758
+        PT_IS_STD = 0.13436613976955414
+        PT_FID = 3.130859375
+    elif version.parse(torch.__version__).base_version == '1.8.2':
+        PT_IS = 11.266389846801758
+        PT_IS_STD = 0.13436613976955414
+        PT_FID = 3.143524169921875
+    else:
+        assert False, f'Unknown torch version: {torch.__version__}'
 
     PATH_CIFAR10 = f"{results_root}/cifar10"
     PATH_CIFAR10_TRAIN = f"{results_root}/cifar10/train"

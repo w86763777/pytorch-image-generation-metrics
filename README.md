@@ -37,8 +37,8 @@ This repository is developed for personal research. If you think this package ca
 |                   |Train IS  |Test IS   |Train(50k) vs Test(10k)<br>FID|
 |-------------------|:--------:|:--------:|:----------------------------:|
 |Official           |11.24±0.20|10.98±0.22|3.1508                        |
-|pytorch-gan-metrics|11.26±0.14|10.96±0.35|3.1518                        |
-|pytorch-gan-metrics<br>`use_torch=True`|11.26±0.15|10.96±0.19|3.1509                        |
+|pytorch-gan-metrics|11.26±0.13|10.96±0.35|3.1518                        |
+|pytorch-gan-metrics<br>`use_torch=True`<br>`torch==2.0.1`|11.26±0.15|10.95±0.16|3.1309                        |
 
 The results are slightly different from official implementations due to the framework difference between PyTorch and TensorFlow.
 
