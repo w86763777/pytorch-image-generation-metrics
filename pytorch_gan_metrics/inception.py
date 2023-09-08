@@ -13,7 +13,7 @@ from torch.hub import load_state_dict_from_url
 # http://download.tensorflow.org/models/image/imagenet/inception-2015-12-05.tgz
 FID_WEIGHTS_URL = ('https://github.com/w86763777/pytorch-gan-metrics/releases/'
                    'download/v0.1.0/pt_inception-2015-12-05-6726825d.pth')
-TORCH_VERSION = version.parse(torchvision.__version__)
+TORCHVISION_VERSION = version.parse(torchvision.__version__)
 
 
 class InceptionV3(nn.Module):
@@ -84,7 +84,7 @@ class InceptionV3(nn.Module):
         if use_fid_inception:
             inception = fid_inception_v3()
         else:
-            if TORCH_VERSION < version.parse("0.13.0"):
+            if TORCHVISION_VERSION < version.parse("0.13.0"):
                 inception = models.inception_v3(
                     pretrained=True,
                     init_weights=False)
@@ -193,7 +193,7 @@ def fid_inception_v3():
     This method first constructs torchvision's Inception and then patches the
     necessary parts that are different in the FID Inception model.
     """
-    if TORCH_VERSION < version.parse("0.13.0"):
+    if TORCHVISION_VERSION < version.parse("0.13.0"):
         inception = models.inception_v3(
             pretrained=False,
             aux_logits=False,

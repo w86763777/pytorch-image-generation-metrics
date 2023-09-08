@@ -86,9 +86,12 @@ def get_inception_score_and_fid(
     inception_score, std = calculate_inception_score(probs, splits, use_torch)
 
     # Frechet Inception Distance
-    f = np.load(fid_stats_path)
-    mu, sigma = f['mu'][:], f['sigma'][:]
-    f.close()
+    f = np.load(fid_stats_path, allow_pickle=True)
+    if isinstance(f, np.ndarray):
+        mu, sigma = f.item()['mu'][:], f.item()['sigma'][:]
+    else:
+        mu, sigma = f['mu'][:], f['sigma'][:]
+        f.close()
     fid = calculate_frechet_inception_distance(acts, mu, sigma, use_torch)
 
     return (inception_score, std), fid
@@ -150,9 +153,12 @@ def get_fid(
         images, dims=[2048], use_torch=use_torch, **kwargs)
 
     # Frechet Inception Distance
-    f = np.load(fid_stats_path)
-    mu, sigma = f['mu'][:], f['sigma'][:]
-    f.close()
+    f = np.load(fid_stats_path, allow_pickle=True)
+    if isinstance(f, np.ndarray):
+        mu, sigma = f.item()['mu'][:], f.item()['sigma'][:]
+    else:
+        mu, sigma = f['mu'][:], f['sigma'][:]
+        f.close()
     fid = calculate_frechet_inception_distance(acts, mu, sigma, use_torch)
 
     return fid
