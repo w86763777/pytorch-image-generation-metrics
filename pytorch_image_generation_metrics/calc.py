@@ -25,7 +25,7 @@ def calc(args):
         num_workers=args.num_workers)
     (IS, IS_std), FID = get_inception_score_and_fid(
         loader,
-        args.stats,
+        args.fid_ref,
         use_torch=args.use_torch,
         verbose=True)
     print0(IS, IS_std, FID)
@@ -39,10 +39,11 @@ def calc_init(init_method, world_size, rank, args):
 def main():
     parser = argparse.ArgumentParser(
         description="A command-line tool to calculate Frechet Inception Distance (FID) between generated and reference images.",
+        epilog="Example: CUDA_VISIBLE_DEVICES=0,1 python -m pytorch_image_generation_metrics.calc_metrics --path cifar10/train --fid_ref cifar10.test.npz --batch 64",
         formatter_class=argparse.ArgumentDefaultsHelpFormatter)
     parser.add_argument('--path', type=str, required=True,
                         help='Path to the directory containing generated images.')
-    parser.add_argument('--stats', type=str, required=True,
+    parser.add_argument('--fid_ref', type=str, required=True,
                         help='Path to precalculated reference statistics file.')
     parser.add_argument("--batch_size", type=int, default=50,
                         help="Batch size for processing images.")

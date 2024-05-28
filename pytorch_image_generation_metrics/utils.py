@@ -59,7 +59,7 @@ class ImageDataset(Dataset):
 
 def get_inception_score_and_fid(
     images: Union[torch.FloatTensor, DataLoader],
-    fid_stats_path: str,
+    fid_ref: str,
     splits: int = 10,
     use_torch: bool = False,
     **kwargs,
@@ -72,7 +72,7 @@ def get_inception_score_and_fid(
     Args:
         images: List of tensor or torch.utils.data.Dataloader. The return image
                 must be float tensor of range [0, 1].
-        fid_stats_path: Path to pre-calculated statistic.
+        fid_ref: Path to pre-calculated statistic.
         splits: The number of bins of Inception Score.
         use_torch: When True, use torch to calculate FID. Otherwise, use numpy.
         **kwargs: The arguments passed to
@@ -91,7 +91,7 @@ def get_inception_score_and_fid(
     inception_score, std = calculate_inception_score(probs, splits, use_torch)
 
     # Frechet Inception Distance
-    f = np.load(fid_stats_path, allow_pickle=True)
+    f = np.load(fid_ref, allow_pickle=True)
     if isinstance(f, np.ndarray):
         mu, sigma = f.item()['mu'][:], f.item()['sigma'][:]
     else:
@@ -104,7 +104,7 @@ def get_inception_score_and_fid(
 
 def get_inception_score_and_fid_from_directory(
     path: str,
-    fid_stats_path: str,
+    fid_ref: str,
     exts: List[str] = ['png', 'jpg'],
     batch_size: int = 50,
     splits: int = 10,
@@ -116,7 +116,7 @@ def get_inception_score_and_fid_from_directory(
     Args:
         path: Path to the image directory. This function will recursively find
               images in all subfolders.
-        fid_stats_path: Path to pre-calculated statistic.
+        fid_ref: Path to pre-calculated statistic.
         exts: List of extensions to search for.
         batch_size: Batch size of DataLoader.
         splits: The number of bins of Inception Score.
@@ -130,14 +130,14 @@ def get_inception_score_and_fid_from_directory(
     """
     return get_inception_score_and_fid(
         images=DataLoader(ImageDataset(path, exts), batch_size=batch_size),
-        fid_stats_path=fid_stats_path,
+        fid_ref=fid_ref,
         splits=splits,
         use_torch=use_torch, **kwargs)
 
 
 def get_fid(
     images: Union[torch.FloatTensor, DataLoader],
-    fid_stats_path: str,
+    fid_ref: str,
     use_torch: bool = False,
     **kwargs,
 ) -> float:
@@ -146,7 +146,7 @@ def get_fid(
     Args:
         images: List of tensor or torch.utils.data.Dataloader. The return image
                 must be float tensor of range [0, 1].
-        fid_stats_path: Path to pre-calculated statistic.
+        fid_ref: Path to pre-calculated statistic.
         use_torch: When True, use torch to calculate FID. Otherwise, use numpy.
         **kwargs: The arguments passed to
                   `pytorch_gan_metrics.core.get_inception_feature`.
@@ -161,7 +161,7 @@ def get_fid(
         return None
 
     # Frechet Inception Distance
-    f = np.load(fid_stats_path, allow_pickle=True)
+    f = np.load(fid_ref, allow_pickle=True)
     if isinstance(f, np.ndarray):
         mu, sigma = f.item()['mu'][:], f.item()['sigma'][:]
     else:
@@ -174,7 +174,7 @@ def get_fid(
 
 def get_fid_from_directory(
     path: str,
-    fid_stats_path: str,
+    fid_ref: str,
     exts: List[str] = ['png', 'jpg'],
     batch_size: int = 50,
     use_torch: bool = False,
@@ -185,7 +185,7 @@ def get_fid_from_directory(
     Args:
         path: Path to the image directory. This function will recursively find
               images in all subfolders.
-        fid_stats_path: Path to pre-calculated statistic.
+        fid_ref: Path to pre-calculated statistic.
         exts: List of extensions to search for.
         use_torch: When True, use torch to calculate FID. Otherwise, use numpy.
         **kwargs: The arguments passed to
@@ -196,7 +196,7 @@ def get_fid_from_directory(
     """
     return get_fid(
         images=DataLoader(ImageDataset(path, exts), batch_size=batch_size),
-        fid_stats_path=fid_stats_path,
+        fid_ref=fid_ref,
         use_torch=use_torch,
         **kwargs)
 
@@ -259,9 +259,9 @@ def get_inception_score_from_directory(
         **kwargs)
 
 
-def calc_and_save_stats(
+def calc_fid_ref(
     input_path: str,
-    output_path: str,
+    output_path: str = None,
     batch_size: int = 50,
     img_size: Optional[int] = None,
     use_torch: bool = False,
@@ -273,7 +273,7 @@ def calc_and_save_stats(
     Args:
         input_path (str): Path to the image directory. This function will
                           recursively find images in all subfolders.
-        output_path (str): Path to the output file.
+        output_path (str): Path to the output file. Use None to disable.
         batch_size (int): Batch size. Defaults to 50.
         img_size (int): Image size. If None, use the original image size.
         num_workers (int): Number of dataloader workers. Default:
@@ -307,6 +307,9 @@ def calc_and_save_stats(
         mu = np.mean(acts, axis=0)
         sigma = np.cov(acts, rowvar=False)
 
-    if os.path.dirname(output_path) != "":
-        os.makedirs(os.path.dirname(output_path), exist_ok=True)
-    np.savez_compressed(output_path, mu=mu, sigma=sigma)
+    if output_path is not None:
+        if os.path.dirname(output_path) != "":
+            os.makedirs(os.path.dirname(output_path), exist_ok=True)
+        np.savez_compressed(output_path, mu=mu, sigma=sigma)
+
+    return mu, sigma

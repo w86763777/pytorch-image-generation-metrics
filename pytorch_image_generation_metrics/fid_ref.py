@@ -7,11 +7,11 @@ import tempfile
 import torch
 
 from .districuted import init
-from .utils import calc_and_save_stats
+from .utils import calc_fid_ref
 
 
 def calc(args):
-    calc_and_save_stats(
+    calc_fid_ref(
         args.path,
         args.output,
         args.batch_size,
@@ -28,6 +28,7 @@ def calc_init(init_method, world_size, rank, args):
 def main():
     parser = argparse.ArgumentParser(
         description="A command-line tool to compute Frechet Inception Distance (FID) statistics.",
+        epilog="Example: CUDA_VISIBLE_DEVICES=0,1 python -m pytorch_image_generation_metrics.fid_ref --path cifar10/train --output cifar10.test.npz --batch_size 64",
         formatter_class=argparse.ArgumentDefaultsHelpFormatter)
     parser.add_argument("--path", type=str, required=True,
                         help='Path to the directory containing images (including subfolders).')

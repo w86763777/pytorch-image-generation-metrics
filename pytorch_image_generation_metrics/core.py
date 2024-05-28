@@ -279,7 +279,7 @@ def calculate_frechet_distance(
         out = (diff.dot(diff) +
                np.trace(sigma1) +
                np.trace(sigma2) -
-               2 * tr_covmean)
+               2 * tr_covmean).item()
     return out
 
 
@@ -311,6 +311,6 @@ def calculate_inception_score(
         inception_score = torch.mean(scores).cpu().item()
         std = torch.std(scores).cpu().item()
     else:
-        inception_score, std = (np.mean(scores), np.std(scores))
+        inception_score, std = (np.mean(scores).item(), np.std(scores).item())
     del probs, scores
     return inception_score, std
