@@ -11,7 +11,7 @@ from torch.hub import load_state_dict_from_url
 
 # Inception weights ported to Pytorch from
 # http://download.tensorflow.org/models/image/imagenet/inception-2015-12-05.tgz
-FID_WEIGHTS_URL = ('https://github.com/w86763777/pytorch-gan-metrics/releases/'
+FID_WEIGHTS_URL = ('https://github.com/w86763777/pytorch_image_generation_metrics/releases/'
                    'download/v0.1.0/pt_inception-2015-12-05-6726825d.pth')
 TORCHVISION_VERSION = version.parse(torchvision.__version__)
 

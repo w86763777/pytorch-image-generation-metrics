@@ -11,8 +11,11 @@ __pycache__
 
 build
 dist
-pytorch_gan_metrics*
+pytorch_image_generation_metrics*
 .tox
 
-!pytorch_gan_metrics
+!pytorch_image_generation_metrics
 cheatsheet.sh
+
+tests/*
+!tests/*.py

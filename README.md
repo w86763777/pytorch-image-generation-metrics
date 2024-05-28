@@ -1,44 +1,44 @@
-# Pytorch Implementation of Common GAN metrics
+# Pytorch Implementation of Common Image Generation Metrics
 
-![PyPI](https://img.shields.io/pypi/v/pytorch-gan-metrics)
+![PyPI](https://img.shields.io/pypi/v/pytorch_image_generation_metrics)
 
 ## Install
 ```
-pip install pytorch-gan-metrics
+pip install pytorch-image-generation-metrics
 ```
 - `torch>=1.8.2`
 - `torchvision>=0.9.2`
 
 ## Quick Start
 ```python
-from pytorch_gan_metrics import get_inception_score, get_fid
+from pytorch_image_generation_metrics import get_inception_score, get_fid
 
 images = ... # [N, 3, H, W] normalized to [0, 1]
 IS, IS_std = get_inception_score(images)        # Inception Score
 FID = get_fid(images, 'path/to/statistics.npz') # Frechet Inception Distance
 ```
-`path/to/statistics.npz` is compatiable with [official](https://github.com/bioinf-jku/TTUR) FID implementation.
+`path/to/statistics.npz` is compatiable with the [official FID implementation](https://github.com/bioinf-jku/TTUR).
 
 ## Notes
-The FID implementation is inspired from [pytorch-fid](https://github.com/mseitzer/pytorch-fid).
+The FID implementation is inspired by [pytorch-fid](https://github.com/mseitzer/pytorch-fid).
 
 This repository is developed for personal research. If you think this package can also benefit your life, please feel free to open issues.
 
 ## Features
-- Currently, this package supports following metrics:
+- Currently, this package supports the following metrics:
   - [Inception Score](https://github.com/openai/improved-gan) (IS)
   - [Fréchet Inception Distance](https://github.com/bioinf-jku/TTUR) (FID)
 - The computation procedure of IS and FID are integrated to avoid multiple forward propagations.
-- Support reading images on the fly to avoid out of memory especially for large scale images.
-- Support computation on GPU to speed up some cpu operations such as `np.cov` and `scipy.linalg.sqrtm`.
+- Supports reading images on the fly to avoid out-of-memory issue, especially for large-scale images.
+- Support computation on GPU to speed up some CPU operations such as `np.cov` and `scipy.linalg.sqrtm`.
 
 ## Reproducing Results of Official Implementations on CIFAR-10
 
 |                   |Train IS  |Test IS   |Train(50k) vs Test(10k)<br>FID|
 |-------------------|:--------:|:--------:|:----------------------------:|
 |Official           |11.24±0.20|10.98±0.22|3.1508                        |
-|pytorch-gan-metrics|11.26±0.13|10.96±0.35|3.1518                        |
-|pytorch-gan-metrics<br>`use_torch=True`<br>`torch==2.0.1`|11.26±0.15|10.95±0.16|3.1309                        |
+|pytorch_image_generation_metrics|11.26±0.13|10.96±0.35|3.1518                        |
+|pytorch_image_generation_metrics<br>`use_torch=True`<br>`torch==2.0.1`|11.26±0.15|10.95±0.16|3.1309                        |
 
 The results are slightly different from official implementations due to the framework difference between PyTorch and TensorFlow.
 
@@ -46,23 +46,23 @@ The results are slightly different from official implementations due to the fram
 
 ### Prepare Statistics (for FID)
 - [Download](https://drive.google.com/drive/folders/1UBdzl6GtNMwNQ5U-4ESlIer43tNjiGJC?usp=sharing) precalculated statistics or
-- Calculate statistics for your custom dataset using command line tool
+- Calculate statistics for your custom dataset using the command-line tool:
     ```bash
-    python -m pytorch_gan_metrics.calc_fid_stats \
+    python -m pytorch_image_generation_metrics.calc_fid_stats \
         --path path/to/images \
         --stats path/to/statistics.npz
     ```
-    See [calc_fid_stats.py](./pytorch_gan_metrics/calc_fid_stats.py) for details.
+    See [calc_fid_stats.py](./pytorch_image_generation_metrics/calc_fid_stats.py) for details.
 
 ### Inception Features
-- When getting IS or FID, the `InceptionV3` will be loaded into `torch.device('cuda:0')` if GPU is availabel; Otherwise, `torch.device('cpu')` will be used.
-- Change `device` argument in `get_*` functions to set torch device.
+- When getting IS or FID, the `InceptionV3` will be loaded into `torch.device('cuda:0')` by default.
+- Change `device` argument in `get_*` functions to set the torch device.
 
 ### Using `torch.Tensor` as images
 
 - Prepare images in type `torch.float32` with shape `[N, 3, H, W]` and normalized to `[0,1]`.
     ```python
-    from pytorch_gan_metrics import (get_inception_score,
+    from pytorch_image_generation_metrics import (get_inception_score,
                                      get_fid,
                                      get_inception_score_and_fid)
     images = ... # [N, 3, H, W]
@@ -81,9 +81,9 @@ The results are slightly different from official implementations due to the fram
 
 ### Using PyTorch DataLoader to Provide Images
 
-- Use `pytorch_gan_metrics.ImageDataset` to collect images on your storage or use your custom `torch.utils.data.Dataset`.
+- Use `pytorch_image_generation_metrics.ImageDataset` to collect images on your storage or use your custom `torch.utils.data.Dataset`.
     ```python
-    from pytorch_gan_metrics import ImageDataset
+    from pytorch_image_generation_metrics import ImageDataset
 
     dataset = ImageDataset(path_to_dir, exts=['png', 'jpg'])
     loader = DataLoader(dataset, batch_size=50, num_workers=4)
@@ -108,7 +108,7 @@ The results are slightly different from official implementations due to the fram
 
 - Calculate metrics
     ```python
-    from pytorch_gan_metrics import (get_inception_score,
+    from pytorch_image_generation_metrics import (get_inception_score,
                                      get_fid,
                                      get_inception_score_and_fid)
     # Inception Score
@@ -126,7 +126,7 @@ The results are slightly different from official implementations due to the fram
 
 - Calculate metrics for images in a directory and its subfolders.
     ```python
-    from pytorch_gan_metrics import (
+    from pytorch_image_generation_metrics import (
         get_inception_score_from_directory,
         get_fid_from_directory,
         get_inception_score_and_fid_from_directory)
@@ -145,7 +145,7 @@ The results are slightly different from official implementations due to the fram
 
 - **WARNING** when `use_torch=True` is used, the FID might be `nan` due to the unstable implementation of matrix sqrt.
 
-- This option is recommended to be used when evaluating generative models on a server which is equipped with high efficiency GPUs while the cpu frequency is low.
+- This option is recommended for evaluating generative models on a server equipped with high-efficiency GPUs while the CPU is low-efficiency.
 
 ## Tested Versions
 - `python 3.9 + torch 1.8.2 + CUDA 10.2`

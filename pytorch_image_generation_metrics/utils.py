@@ -7,10 +7,12 @@ from glob import glob
 import numpy as np
 import torch
 from PIL import Image
-from torch.utils.data import Dataset, DataLoader
+from torch.utils.data import Dataset, DataLoader, SequentialSampler
+from torch.utils.data.distributed import DistributedSampler
 from torchvision.transforms import Compose, Resize, ToTensor
 from torchvision.transforms.functional import to_tensor
 
+from .districuted import rank, world_size
 from .core import (
     get_inception_feature,
     calculate_inception_score,
@@ -82,6 +84,9 @@ def get_inception_score_and_fid(
     acts, probs = get_inception_feature(
         images, dims=[2048, 1008], use_torch=use_torch, **kwargs)
 
+    if rank() != 0:
+        return (None, None), None
+
     # Inception Score
     inception_score, std = calculate_inception_score(probs, splits, use_torch)
 
@@ -152,6 +157,9 @@ def get_fid(
     acts, = get_inception_feature(
         images, dims=[2048], use_torch=use_torch, **kwargs)
 
+    if rank() != 0:
+        return None
+
     # Frechet Inception Distance
     f = np.load(fid_stats_path, allow_pickle=True)
     if isinstance(f, np.ndarray):
@@ -214,6 +222,8 @@ def get_inception_score(
     """
     probs, = get_inception_feature(
         images, dims=[1008], use_torch=use_torch, **kwargs)
+    if rank() != 0:
+        return (None, None)
     inception_score, std = calculate_inception_score(probs, splits, use_torch)
     return (inception_score, std)
 
@@ -275,10 +285,20 @@ def calc_and_save_stats(
         transform = ToTensor()
 
     dataset = ImageDataset(root=input_path, transform=transform)
+    if world_size() > 1:
+        sampler = DistributedSampler(dataset, shuffle=False)
+    else:
+        sampler = SequentialSampler(dataset)
     loader = DataLoader(
-        dataset, batch_size=batch_size, num_workers=num_workers)
+        dataset,
+        batch_size=batch_size,
+        sampler=sampler,
+        num_workers=num_workers)
     acts, = get_inception_feature(
         loader, dims=[2048], use_torch=use_torch, verbose=verbose)
+
+    if rank() != 0:
+        return
 
     if use_torch:
         mu = torch.mean(acts, dim=0).cpu().numpy()

@@ -6,8 +6,10 @@ import numpy as np
 import torch
 from scipy import linalg
 from tqdm.auto import tqdm
-from torch.utils.data import DataLoader
+from torch.utils.data import DataLoader, SequentialSampler, TensorDataset
+from torch.utils.data.distributed import DistributedSampler
 
+from . import districuted as dist
 from .inception import InceptionV3
 
 
@@ -15,12 +17,12 @@ from .inception import InceptionV3
 
 
 def get_inception_feature(
-    images: Union[List[torch.FloatTensor], DataLoader],
+    images: Union[torch.FloatTensor, DataLoader],
     dims: List[int],
     batch_size: int = 50,
     use_torch: bool = False,
     verbose: bool = False,
-    device: torch.device = torch.device('cuda:0'),
+    device: torch.device = None,
 ) -> Union[torch.FloatTensor, np.ndarray]:
     """Calculate Inception Score and FID.
 
@@ -28,7 +30,7 @@ def get_inception_feature(
     features for FID and Inception Score.
 
     Args:
-        images: List of tensor or torch.utils.data.Dataloader. The return image
+        images: tensor or torch.utils.data.Dataloader. The images
                 must be float tensor of range [0, 1].
         dims: List of int, see InceptionV3.BLOCK_INDEX_BY_DIM for
               available dimension.
@@ -40,53 +42,93 @@ def get_inception_feature(
                  the progress bar is showing when calculating activations.
         device: the torch device which is used to calculate inception feature
     Returns:
-        inception_score: float tuple, (mean, std)
-        fid: float
+        inception_features: a list of extracted inception features
+            corresponding to given dims.
     """
     assert all(dim in InceptionV3.BLOCK_INDEX_BY_DIM for dim in dims)
+    if device is None:
+        device = dist.device()
 
-    is_dataloader = isinstance(images, DataLoader)
-    if is_dataloader:
-        num_images = min(len(images.dataset), images.batch_size * len(images))
-        batch_size = images.batch_size
-    else:
+    if not isinstance(images, DataLoader):
         num_images = len(images)
+        if dist.world_size() > 1:
+            sampler = DistributedSampler(
+                TensorDataset(images), shuffle=False)
+        else:
+            sampler = SequentialSampler(TensorDataset(images))
+        # print(sampler)
+        loader = DataLoader(
+            images,
+            batch_size=batch_size,
+            sampler=sampler,
+            drop_last=False,
+        )
+    else:
+        num_images = len(images.dataset)
+        loader = images
 
     block_idxs = [InceptionV3.BLOCK_INDEX_BY_DIM[dim] for dim in dims]
-    model = InceptionV3(block_idxs).to(device)
+    # Initialize InceptionV3 model
+    if dist.rank() == 0:
+        # Only rank 0 initialize download the model
+        model = InceptionV3(block_idxs).to(device)
+        dist.barrier()
+    else:
+        # Other ranks wait until rank 0 download the model
+        dist.barrier()
+        model = InceptionV3(block_idxs).to(device)
     model.eval()
 
-    if use_torch:
-        features = [torch.empty((num_images, dim)).to(device) for dim in dims]
-    else:
-        features = [np.empty((num_images, dim)) for dim in dims]
+    if dist.rank() == 0:
+        if use_torch:
+            features = [
+                torch.empty((num_images, dim)).to(device)
+                for dim in dims]
+        else:
+            features = [
+                np.empty((num_images, dim))
+                for dim in dims]
 
     pbar = tqdm(
         total=num_images, dynamic_ncols=True, leave=False,
-        disable=not verbose, desc="get_inception_feature")
-    looper = iter(images)
+        disable=(dist.rank() != 0 or not verbose),
+        desc="get_inception_feature")
     start = 0
-    while start < num_images:
-        # get a batch of images from iterator
-        if is_dataloader:
-            batch_images = next(looper)
-        else:
-            batch_images = images[start: start + batch_size]
-        end = start + len(batch_images)
-
-        # calculate inception feature
+    for batch_images in loader:
         batch_images = batch_images.to(device)
+        # calculate inception feature
+        end = min(start + len(batch_images) * dist.world_size(), num_images)
         with torch.no_grad():
             outputs = model(batch_images)
-            for feature, output, dim in zip(features, outputs, dims):
-                if use_torch:
-                    feature[start: end] = output.view(-1, dim)
+            if end == num_images:
+                # This is the last batch, so we need to remove the padding.
+                if num_images % dist.world_size() != 0:
+                    is_padded = dist.rank() >= num_images % dist.world_size()
                 else:
-                    feature[start: end] = output.view(-1, dim).cpu().numpy()
+                    is_padded = False
+                if is_padded:
+                    # Remove the padding
+                    outputs = [output[: -1] for output in outputs]
+                    for output in outputs:
+                        print(output.shape)
+            outputs = [dist.gather(output) for output in outputs]
+            if dist.rank() == 0:
+                for feature, output, dim in zip(features, outputs, dims):
+                    if use_torch:
+                        feature[start: end] = output.view(-1, dim)
+                    else:
+                        feature[start: end] = output.view(-1, dim).cpu().numpy()
+                dist.barrier()
+            else:
+                dist.barrier()
+        pbar.update(end - start)
         start = end
-        pbar.update(len(batch_images))
     pbar.close()
-    return features
+    assert start == num_images
+    if dist.rank() == 0:
+        return features
+    else:
+        return [None for _ in range(len(dims))]
 
 
 def torch_cov(m, rowvar=False):
