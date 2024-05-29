@@ -1,7 +1,7 @@
 .vscode
 
 cifar10
-stats
+fid_refs
 gold
 *.npz
 

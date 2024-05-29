@@ -15,9 +15,9 @@ from pytorch_image_generation_metrics import get_inception_score, get_fid
 
 images = ... # [N, 3, H, W] normalized to [0, 1]
 IS, IS_std = get_inception_score(images)        # Inception Score
-FID = get_fid(images, 'path/to/statistics.npz') # Frechet Inception Distance
+FID = get_fid(images, 'path/to/fid_ref.npz') # Frechet Inception Distance
 ```
-`path/to/statistics.npz` is compatiable with the [official FID implementation](https://github.com/bioinf-jku/TTUR).
+`path/to/fid_ref.npz` is compatiable with the [official FID implementation](https://github.com/bioinf-jku/TTUR).
 
 ## Notes
 The FID implementation is inspired by [pytorch-fid](https://github.com/mseitzer/pytorch-fid).
@@ -34,25 +34,25 @@ This repository is developed for personal research. If you think this package ca
 
 ## Reproducing Results of Official Implementations on CIFAR-10
 
-|                   |Train IS  |Test IS   |Train(50k) vs Test(10k)<br>FID|
-|-------------------|:--------:|:--------:|:----------------------------:|
-|Official           |11.24±0.20|10.98±0.22|3.1508                        |
-|pytorch_image_generation_metrics|11.26±0.13|10.96±0.35|3.1518                        |
-|pytorch_image_generation_metrics<br>`use_torch=True`<br>`torch==2.0.1`|11.26±0.15|10.95±0.16|3.1309                        |
+|                     |Train IS  |Test IS   |Train(50k) vs Test(10k)<br>FID|
+|---------------------|:--------:|:--------:|:----------------------------:|
+|Official             |11.24±0.20|10.98±0.22|3.1508                        |
+|ours                 |11.26±0.13|10.97±0.19|3.1525                        |
+|ours `use_torch=True`|11.26±0.15|10.97±0.20|3.1457                        |
 
 The results are slightly different from official implementations due to the framework difference between PyTorch and TensorFlow.
 
 ## Documentation
 
-### Prepare Statistics (for FID)
-- [Download](https://drive.google.com/drive/folders/1UBdzl6GtNMwNQ5U-4ESlIer43tNjiGJC?usp=sharing) precalculated statistics or
-- Calculate statistics for your custom dataset using the command-line tool:
+### Prepare Statistical Reference for FID
+- [Download](https://drive.google.com/drive/folders/1UBdzl6GtNMwNQ5U-4ESlIer43tNjiGJC?usp=sharing) precalculated reference or
+- Calculate statistical reference for your custom dataset using the command-line tool:
     ```bash
-    python -m pytorch_image_generation_metrics.calc_fid_stats \
+    python -m pytorch_image_generation_metrics.fid_ref \
         --path path/to/images \
-        --stats path/to/statistics.npz
+        --output path/to/fid_ref.npz
     ```
-    See [calc_fid_stats.py](./pytorch_image_generation_metrics/calc_fid_stats.py) for details.
+    See [fid_ref.py](./pytorch_image_generation_metrics/fid_ref.py) for details.
 
 ### Inception Features
 - When getting IS or FID, the `InceptionV3` will be loaded into `torch.device('cuda:0')` by default.
@@ -72,10 +72,10 @@ The results are slightly different from official implementations due to the fram
         images)
     # Frechet Inception Distance
     FID = get_fid(
-        images, 'path/to/statistics.npz')
+        images, 'path/to/fid_ref.npz')
     # Inception Score & Frechet Inception Distance
     (IS, IS_std), FID = get_inception_score_and_fid(
-        images, 'path/to/statistics.npz')
+        images, 'path/to/fid_ref.npz')
 
     ```
 
@@ -116,10 +116,10 @@ The results are slightly different from official implementations due to the fram
         loader)
     # Frechet Inception Distance
     FID = get_fid(
-        loader, 'path/to/statistics.npz')
+        loader, 'path/to/fid_ref.npz')
     # Inception Score & Frechet Inception Distance
     (IS, IS_std), FID = get_inception_score_and_fid(
-        loader, 'path/to/statistics.npz')
+        loader, 'path/to/fid_ref.npz')
     ```
 
 ### Load Images from a Directory
@@ -134,9 +134,9 @@ The results are slightly different from official implementations due to the fram
     IS, IS_std = get_inception_score_from_directory(
         'path/to/images')
     FID = get_fid_from_directory(
-        'path/to/images', 'path/to/statistics.npz')
+        'path/to/images', 'path/to/fid_ref.npz')
     (IS, IS_std), FID = get_inception_score_and_fid_from_directory(
-        'path/to/images', 'path/to/statistics.npz')
+        'path/to/images', 'path/to/fid_ref.npz')
     ```
 
 ### Accelerating Matrix Computation by PyTorch

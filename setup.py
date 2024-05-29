@@ -21,14 +21,13 @@ if __name__ == '__main__':
         version=__version__,    # noqa: F821
         author='Yi-Lun Wu',
         author_email='w86763777@gmail.com',
-        description=('Package for calculating GAN metrics using Pytorch'),
+        description=('Package for calculating image generation metrics using Pytorch'),
         long_description=read('README.md'),
         long_description_content_type='text/markdown',
         url='https://github.com/w86763777/pytorch_image_generation_metrics',
         packages=setuptools.find_packages(include=['pytorch_image_generation_metrics']),
         keywords=[
             'PyTorch',
-            'GAN',
             'Inception Score',
             'IS',
             'Frechet Inception Distance',
