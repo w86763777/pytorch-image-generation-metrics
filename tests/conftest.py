@@ -20,7 +20,7 @@ PATH_CIFAR10_TRAIN_FID_REF_NP = f'{TEST_ROOT}/{TEST_NAME}/cifar10.train.npz'
 PATH_CIFAR10_TEST_FID_REF_NP = f'{TEST_ROOT}/{TEST_NAME}/cifar10.test.npz'
 PATH_CIFAR10_TRAIN_FID_REF_PT = f'{TEST_ROOT}/{TEST_NAME}/cifar10.train.pt.npz'
 PATH_CIFAR10_TEST_FID_REF_PT = f'{TEST_ROOT}/{TEST_NAME}/cifar10.test.pt.npz'
-NUM_WORKERS = os.environ.get('NUM_WORKERS', min(torch.get_num_threads(), 4))
+NUM_WORKERS = int(os.environ.get('NUM_WORKERS', min(torch.get_num_threads(), 4)))
 
 
 def save_dataset(dataset, root):

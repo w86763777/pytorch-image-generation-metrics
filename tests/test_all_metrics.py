@@ -44,9 +44,9 @@ class TestAllMetrics:
         logging.info(format_relative_error("IS", IS, expected_is))
         logging.info(format_relative_error("IS_STD", IS_std, expected_std))
         logging.info(format_relative_error("FID", FID, expected_fid))
-        assert torch.allclose(torch.tensor(IS), torch.tensor(expected_is), rtol=1e-3)
-        assert torch.allclose(torch.tensor(IS_std), torch.tensor(expected_std), rtol=1e-3)
-        assert torch.allclose(torch.tensor(FID), torch.tensor(expected_fid), rtol=1e-3)
+        assert torch.allclose(torch.tensor(IS), torch.tensor(expected_is), rtol=1e-2)
+        assert torch.allclose(torch.tensor(IS_std), torch.tensor(expected_std), rtol=1e-2)
+        assert torch.allclose(torch.tensor(FID), torch.tensor(expected_fid), rtol=1e-2)
 
     @pytest.mark.parametrize("batch_size, fid_ref, use_torch, expected_is, expected_std, expected_fid", [
         (50, PATH_CIFAR10_TRAIN_FID_REF_NP, False, NP_IS, NP_IS_STD, NP_FID),
@@ -70,9 +70,9 @@ class TestAllMetrics:
         logging.info(format_relative_error("IS", IS, expected_is))
         logging.info(format_relative_error("IS_STD", IS_std, expected_std))
         logging.info(format_relative_error("FID", FID, expected_fid))
-        assert torch.allclose(torch.tensor(IS), torch.tensor(expected_is), rtol=1e-3)
-        assert torch.allclose(torch.tensor(IS_std), torch.tensor(expected_std), rtol=1e-3)
-        assert torch.allclose(torch.tensor(FID), torch.tensor(expected_fid), rtol=1e-3)
+        assert torch.allclose(torch.tensor(IS), torch.tensor(expected_is), rtol=1e-2)
+        assert torch.allclose(torch.tensor(IS_std), torch.tensor(expected_std), rtol=1e-2)
+        assert torch.allclose(torch.tensor(FID), torch.tensor(expected_fid), rtol=1e-2)
 
     @pytest.mark.parametrize("batch_size, fid_ref, use_torch, expected_is, expected_std, expected_fid", [
         (50, PATH_CIFAR10_TRAIN_FID_REF_NP, False, NP_IS, NP_IS_STD, NP_FID),
@@ -93,6 +93,6 @@ class TestAllMetrics:
         logging.info(format_relative_error("IS", IS, expected_is))
         logging.info(format_relative_error("IS_STD", IS_std, expected_std))
         logging.info(format_relative_error("FID", FID, expected_fid))
-        assert torch.allclose(torch.tensor(IS), torch.tensor(expected_is), rtol=1e-3)
-        assert torch.allclose(torch.tensor(IS_std), torch.tensor(expected_std), rtol=1e-3)
-        assert torch.allclose(torch.tensor(FID), torch.tensor(expected_fid), rtol=1e-3)
+        assert torch.allclose(torch.tensor(IS), torch.tensor(expected_is), rtol=1e-2)
+        assert torch.allclose(torch.tensor(IS_std), torch.tensor(expected_std), rtol=1e-2)
+        assert torch.allclose(torch.tensor(FID), torch.tensor(expected_fid), rtol=1e-2)

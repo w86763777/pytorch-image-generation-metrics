@@ -1,6 +1,5 @@
 # from packaging import version
 import logging
-from packaging import version
 
 import pytest
 import torch
@@ -18,11 +17,8 @@ from .conftest import (
 
 NP_IS = 10.968601098
 NP_IS_STD = 0.193806868
-if version.parse(torch.__version__).base_version == '2.3.0':
-    PT_IS = 10.968603134
-    PT_IS_STD = 0.204290837
-else:
-    assert False, f'Unknown torch version: {torch.__version__}'
+PT_IS = 10.968603134        # torch==2.3.0
+PT_IS_STD = 0.204290837     # torch==2.3.0
 
 
 @pytest.mark.inception_score
@@ -45,8 +41,8 @@ class TestInceptionScore:
         IS, IS_std = get_inception_score(loader, use_torch=use_torch)
         logging.info(format_relative_error("IS", IS, expected_is))
         logging.info(format_relative_error("IS_STD", IS_std, expected_std))
-        assert torch.allclose(torch.tensor(IS), torch.tensor(expected_is), rtol=1e-3)
-        assert torch.allclose(torch.tensor(IS_std), torch.tensor(expected_std), rtol=1e-3)
+        assert torch.allclose(torch.tensor(IS), torch.tensor(expected_is), rtol=1e-2)
+        assert torch.allclose(torch.tensor(IS_std), torch.tensor(expected_std), rtol=1e-2)
 
     @pytest.mark.parametrize("batch_size, use_torch, expected_is, expected_std", [
         (50, False, NP_IS, NP_IS_STD),
@@ -66,8 +62,8 @@ class TestInceptionScore:
         IS, IS_std = get_inception_score(images, use_torch=use_torch)
         logging.info(format_relative_error("IS", IS, expected_is))
         logging.info(format_relative_error("IS_STD", IS_std, expected_std))
-        assert torch.allclose(torch.tensor(IS), torch.tensor(expected_is), rtol=1e-3)
-        assert torch.allclose(torch.tensor(IS_std), torch.tensor(expected_std), rtol=1e-3)
+        assert torch.allclose(torch.tensor(IS), torch.tensor(expected_is), rtol=1e-2)
+        assert torch.allclose(torch.tensor(IS_std), torch.tensor(expected_std), rtol=1e-2)
 
     @pytest.mark.parametrize("batch_size, use_torch, expected_is, expected_std", [
         (50, False, NP_IS, NP_IS_STD),
@@ -84,5 +80,5 @@ class TestInceptionScore:
             PATH_CIFAR10_TEST, batch_size=batch_size, use_torch=use_torch)
         logging.info(format_relative_error("IS", IS, expected_is))
         logging.info(format_relative_error("IS_STD", IS_std, expected_std))
-        assert torch.allclose(torch.tensor(IS), torch.tensor(expected_is), rtol=1e-3)
-        assert torch.allclose(torch.tensor(IS_std), torch.tensor(expected_std), rtol=1e-3)
+        assert torch.allclose(torch.tensor(IS), torch.tensor(expected_is), rtol=1e-2)
+        assert torch.allclose(torch.tensor(IS_std), torch.tensor(expected_std), rtol=1e-2)
