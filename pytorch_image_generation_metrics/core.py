@@ -240,9 +240,9 @@ def calculate_frechet_distance(
         if torch.any(torch.isnan(covmean)):
             return float('nan')
         covmean = covmean.squeeze()
-        out = (diff.dot(diff) +
-               torch.trace(sigma1) +
-               torch.trace(sigma2) -
+        out = (diff.dot(diff) +                         # noqa: W504
+               torch.trace(sigma1) +                    # noqa: W504
+               torch.trace(sigma2) -                    # noqa: W504
                2 * torch.trace(covmean)).cpu().item()
     else:
         mu1 = np.atleast_1d(mu1)
@@ -276,9 +276,9 @@ def calculate_frechet_distance(
 
         tr_covmean = np.trace(covmean)
 
-        out = (diff.dot(diff) +
-               np.trace(sigma1) +
-               np.trace(sigma2) -
+        out = (diff.dot(diff) +         # noqa: W504
+               np.trace(sigma1) +       # noqa: W504
+               np.trace(sigma2) -       # noqa: W504
                2 * tr_covmean).item()
     return out
 
@@ -296,13 +296,13 @@ def calculate_inception_score(
             ((i + 1) * probs.shape[0] // splits), :]
         if use_torch:
             kl = part * (
-                torch.log(part) -
+                torch.log(part) -                                   # noqa: W504
                 torch.log(torch.unsqueeze(torch.mean(part, 0), 0)))
             kl = torch.mean(torch.sum(kl, 1))
             scores.append(torch.exp(kl))
         else:
             kl = part * (
-                np.log(part) -
+                np.log(part) -                                      # noqa: W504
                 np.log(np.expand_dims(np.mean(part, 0), 0)))
             kl = np.mean(np.sum(kl, 1))
             scores.append(np.exp(kl))

@@ -13,6 +13,7 @@ from .utils import ImageDataset, get_inception_score_and_fid
 
 
 def calc(args):
+    """Calculate the FID and Inception Score of images in a directory."""
     dataset = ImageDataset(root=args.path, num_images=args.num_images)
     if world_size() > 1:
         sampler = DistributedSampler(dataset, shuffle=False)
@@ -32,11 +33,13 @@ def calc(args):
 
 
 def calc_init(init_method, world_size, rank, args):
+    """Initialize the distributed environment and calculate the FID and Inception Score of images in a directory."""
     init(init_method, world_size, rank)
     calc(args)
 
 
 def main():
+    """Parse command-line arguments and calculate the FID and Inception Score of images in a directory."""
     parser = argparse.ArgumentParser(
         description="A command-line tool to calculate Frechet Inception Distance (FID) between generated and reference images.",
         epilog="Example: CUDA_VISIBLE_DEVICES=0,1 python -m pytorch_image_generation_metrics.calc_metrics --path cifar10/train --fid_ref cifar10.test.npz --batch 64",

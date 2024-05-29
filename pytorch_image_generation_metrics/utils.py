@@ -1,4 +1,4 @@
-"""The public API of pytorch_gan_metrics."""
+"""The public API of pytorch_image_generation_metrics."""
 
 import os
 from typing import List, Union, Tuple, Optional
@@ -76,7 +76,7 @@ def get_inception_score_and_fid(
         splits: The number of bins of Inception Score.
         use_torch: When True, use torch to calculate FID. Otherwise, use numpy.
         **kwargs: The arguments passed to
-                  `pytorch_gan_metrics.core.get_inception_feature`.
+                  `pytorch_image_generation_metrics.core.get_inception_feature`.
     Returns:
         inception_score: float tuple, (mean, std)
         fid: float
@@ -122,7 +122,7 @@ def get_inception_score_and_fid_from_directory(
         splits: The number of bins of Inception Score.
         use_torch: When True, use torch to calculate FID. Otherwise, use numpy.
         **kwargs: The arguments passed to
-                  `pytorch_gan_metrics.core.get_inception_feature`.
+                  `pytorch_image_generation_metrics.core.get_inception_feature`.
 
     Returns:
         Inception Score: float tuple, mean and std
@@ -149,7 +149,7 @@ def get_fid(
         fid_ref: Path to pre-calculated statistic.
         use_torch: When True, use torch to calculate FID. Otherwise, use numpy.
         **kwargs: The arguments passed to
-                  `pytorch_gan_metrics.core.get_inception_feature`.
+                  `pytorch_image_generation_metrics.core.get_inception_feature`.
 
     Returns:
         FID
@@ -189,7 +189,7 @@ def get_fid_from_directory(
         exts: List of extensions to search for.
         use_torch: When True, use torch to calculate FID. Otherwise, use numpy.
         **kwargs: The arguments passed to
-                  `pytorch_gan_metrics.core.get_inception_feature`.
+                  `pytorch_image_generation_metrics.core.get_inception_feature`.
 
     Returns:
         FID
@@ -215,7 +215,7 @@ def get_inception_score(
         splits: The number of bins of Inception Score.
         use_torch: When True, use torch to calculate FID. Otherwise, use numpy.
         **kwargs: The arguments passed to
-                  `pytorch_gan_metrics.core.get_inception_feature`.
+                  `pytorch_image_generation_metrics.core.get_inception_feature`.
 
     Returns:
         Inception Score
@@ -246,7 +246,7 @@ def get_inception_score_from_directory(
         batch_size: Batch size of DataLoader.
         use_torch: When True, use torch to calculate FID. Otherwise, use numpy.
         **kwargs: The arguments passed to
-                  `pytorch_gan_metrics.core.get_inception_feature`.
+                  `pytorch_image_generation_metrics.core.get_inception_feature`.
 
 
     Returns:

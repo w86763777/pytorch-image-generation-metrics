@@ -11,6 +11,7 @@ from .utils import calc_fid_ref
 
 
 def calc(args):
+    """Calculate statistics for FID and save them to a file."""
     calc_fid_ref(
         args.path,
         args.output,
@@ -21,11 +22,13 @@ def calc(args):
 
 
 def calc_init(init_method, world_size, rank, args):
+    """Initialize the distributed environment and calculate statistics for FID and save them to a file."""
     init(init_method, world_size, rank)
     calc(args)
 
 
 def main():
+    """Parse command-line arguments and calculate statistics for FID and save them to a file."""
     parser = argparse.ArgumentParser(
         description="A command-line tool to compute Frechet Inception Distance (FID) statistics.",
         epilog="Example: CUDA_VISIBLE_DEVICES=0,1 python -m pytorch_image_generation_metrics.fid_ref --path cifar10/train --output cifar10.test.npz --batch_size 64",
