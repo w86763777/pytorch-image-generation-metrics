@@ -1,18 +1,16 @@
 .vscode
 
-cifar10
-stats
-gold
-*.npz
-
-venv
 __pycache__
 .python-version
 
 build
 dist
-pytorch_gan_metrics*
 .tox
+*.egg-info
 
-!pytorch_gan_metrics
+tests/*
+!tests/*.py
+
+fid_refs
+
 cheatsheet.sh

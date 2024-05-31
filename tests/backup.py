@@ -8,7 +8,7 @@ import torch.multiprocessing
 from torchvision.datasets import CIFAR10
 from torch.utils.data import DataLoader
 
-from pytorch_gan_metrics.utils import (
+from pytorch_image_generation_metrics.utils import (
     ImageDataset,
     get_inception_score,
     get_inception_score_from_directory,
@@ -17,7 +17,7 @@ from pytorch_gan_metrics.utils import (
     get_inception_score_and_fid,
     get_inception_score_and_fid_from_directory)
 
-from pytorch_gan_metrics.calc_fid_stats import calc_and_save_stats
+from pytorch_image_generation_metrics.fid_ref import calc_fid_ref
 
 # Fix RuntimeError: Too many open files.
 torch.multiprocessing.set_sharing_strategy('file_system')
@@ -46,8 +46,8 @@ def download_cifar10(root):
         save_dataset(dataset_test, root=os.path.join(root, 'test'))
 
 
-def test_calc_and_save_stats(input_path, output_path, use_torch):
-    calc_and_save_stats(
+def test_calc_fid_ref(input_path, output_path, use_torch):
+    calc_fid_ref(
         input_path, output_path, use_torch=use_torch,
         num_workers=num_workers, verbose=False)
     return None
@@ -272,11 +272,11 @@ def main(name, results_root):
 
     for k, args in enumerate(configs_calc_stats):
         test_method = create_test(
-            test_fn=test_calc_and_save_stats,
+            test_fn=test_calc_fid_ref,
             inputs=args['inputs'],
             expected_outputs=args['expected_outputs'],
         )
-        test_method.__name__ = f'{test_calc_and_save_stats.__name__}_{k}'
+        test_method.__name__ = f'{test_calc_fid_ref.__name__}_{k}'
         setattr(AllTestCase, test_method.__name__, test_method)
 
     for config_group in configs_calc_metrics:

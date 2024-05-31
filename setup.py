@@ -13,21 +13,21 @@ def read(rel_path):
 
 if __name__ == '__main__':
     # get __version__
-    with open('./pytorch_gan_metrics/version.py') as f:
+    with open('./pytorch_image_generation_metrics/version.py') as f:
         exec(f.read())
 
     setuptools.setup(
-        name='pytorch_gan_metrics',
+        name='pytorch_image_generation_metrics',
         version=__version__,    # noqa: F821
         author='Yi-Lun Wu',
         author_email='w86763777@gmail.com',
-        description=('Package for calculating GAN metrics using Pytorch'),
+        description=('Package for calculating image generation metrics using Pytorch'),
         long_description=read('README.md'),
         long_description_content_type='text/markdown',
-        url='https://github.com/w86763777/pytorch-image-generation-metrics',
+        url='https://github.com/w86763777/pytorch_image_generation_metrics',
+        packages=setuptools.find_packages(include=['pytorch_image_generation_metrics']),
         keywords=[
             'PyTorch',
-            'GAN',
             'Inception Score',
             'IS',
             'Frechet Inception Distance',
