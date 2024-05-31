@@ -24,8 +24,7 @@ if __name__ == '__main__':
         description=('Package for calculating GAN metrics using Pytorch'),
         long_description=read('README.md'),
         long_description_content_type='text/markdown',
-        url='https://github.com/w86763777/pytorch-gan-metrics',
-        packages=setuptools.find_packages(include=['pytorch_gan_metrics']),
+        url='https://github.com/w86763777/pytorch-image-generation-metrics',
         keywords=[
             'PyTorch',
             'GAN',
@@ -40,10 +39,6 @@ if __name__ == '__main__':
         ],
         python_requires='>=3.6',
         install_requires=[
-            "packaging",
-            "tqdm",
-            "scipy",
-            "torch>=1.8.2",
-            "torchvision>=0.9.2",
+            "pytorch-image-generation-metrics",
         ],
     )

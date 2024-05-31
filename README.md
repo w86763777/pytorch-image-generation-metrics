@@ -1,3 +1,6 @@
+
+### *This project has been renamed to pytorch-image-generation-metrics. Please visit the new repository [here](https://github.com/w86763777/pytorch-image-generation-metrics).*
+
 # Pytorch Implementation of Common GAN metrics
 
 ![PyPI](https://img.shields.io/pypi/v/pytorch-gan-metrics)
