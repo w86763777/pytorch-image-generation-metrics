@@ -2,12 +2,10 @@
 
 ![PyPI](https://img.shields.io/pypi/v/pytorch_image_generation_metrics)
 
-## Install
+## Installation
 ```
 pip install pytorch-image-generation-metrics
 ```
-- `torch>=1.8.2`
-- `torchvision>=0.9.2`
 
 ## Quick Start
 ```python
@@ -17,20 +15,20 @@ images = ... # [N, 3, H, W] normalized to [0, 1]
 IS, IS_std = get_inception_score(images)        # Inception Score
 FID = get_fid(images, 'path/to/fid_ref.npz') # Frechet Inception Distance
 ```
-`path/to/fid_ref.npz` is compatiable with the [official FID implementation](https://github.com/bioinf-jku/TTUR).
+The file `path/to/fid_ref.npz` is compatiable with the [official FID implementation](https://github.com/bioinf-jku/TTUR).
 
 ## Notes
 The FID implementation is inspired by [pytorch-fid](https://github.com/mseitzer/pytorch-fid).
 
-This repository is developed for personal research. If you think this package can also benefit your life, please feel free to open issues.
+This repository is developed for personal research. If you find this package useful, please feel free to open issues.
 
 ## Features
 - Currently, this package supports the following metrics:
   - [Inception Score](https://github.com/openai/improved-gan) (IS)
   - [Fréchet Inception Distance](https://github.com/bioinf-jku/TTUR) (FID)
-- The computation procedure of IS and FID are integrated to avoid multiple forward propagations.
-- Supports reading images on the fly to avoid out-of-memory issue, especially for large-scale images.
-- Support computation on GPU to speed up some CPU operations such as `np.cov` and `scipy.linalg.sqrtm`.
+- The computation procedures for IS and FID are integrated to avoid multiple forward passes.
+- Supports reading images on the fly to prevent out-of-memory issues, especially for large-scale images.
+- Supports computation on GPU to speed up some CPU operations, such as `np.cov` and `scipy.linalg.sqrtm`.
 
 ## Reproducing Results of Official Implementations on CIFAR-10
 
@@ -40,13 +38,13 @@ This repository is developed for personal research. If you think this package ca
 |ours                 |11.26±0.13|10.97±0.19|3.1525                        |
 |ours `use_torch=True`|11.26±0.15|10.97±0.20|3.1457                        |
 
-The results are slightly different from official implementations due to the framework difference between PyTorch and TensorFlow.
+The results differ slightly from the official implementations due to the framework differences between PyTorch and TensorFlow.
 
 ## Documentation
 
 ### Prepare Statistical Reference for FID
-- [Download](https://drive.google.com/drive/folders/1UBdzl6GtNMwNQ5U-4ESlIer43tNjiGJC?usp=sharing) precalculated reference or
-- Calculate statistical reference for your custom dataset using the command-line tool:
+- [Download](https://drive.google.com/drive/folders/1UBdzl6GtNMwNQ5U-4ESlIer43tNjiGJC?usp=sharing) the pre-calculated reference, or
+- Calculate the statistical reference for your custom dataset using the command-line tool:
     ```bash
     python -m pytorch_image_generation_metrics.fid_ref \
         --path path/to/images \
@@ -55,24 +53,30 @@ The results are slightly different from official implementations due to the fram
     See [fid_ref.py](./pytorch_image_generation_metrics/fid_ref.py) for details.
 
 ### Inception Features
-- When getting IS or FID, the `InceptionV3` will be loaded into `torch.device('cuda:0')` by default.
-- Change `device` argument in `get_*` functions to set the torch device.
+- When getting IS or FID, the `InceptionV3` model will be loaded into `torch.device('cuda:0')` by default.
+- Change the `device` argument in the `get_*` functions to set the torch device.
 
 ### Using `torch.Tensor` as images
 
-- Prepare images in type `torch.float32` with shape `[N, 3, H, W]` and normalized to `[0,1]`.
+- Prepare images as `torch.float32` tensors with shape `[N, 3, H, W]`, normalized to `[0,1]`.
     ```python
-    from pytorch_image_generation_metrics import (get_inception_score,
-                                     get_fid,
-                                     get_inception_score_and_fid)
+    from pytorch_image_generation_metrics import (
+        get_inception_score,
+        get_fid,
+        get_inception_score_and_fid
+    )
+
     images = ... # [N, 3, H, W]
     assert 0 <= images.min() and images.max() <= 1
+
     # Inception Score
     IS, IS_std = get_inception_score(
         images)
+
     # Frechet Inception Distance
     FID = get_fid(
         images, 'path/to/fid_ref.npz')
+
     # Inception Score & Frechet Inception Distance
     (IS, IS_std), FID = get_inception_score_and_fid(
         images, 'path/to/fid_ref.npz')
@@ -81,42 +85,48 @@ The results are slightly different from official implementations due to the fram
 
 ### Using PyTorch DataLoader to Provide Images
 
-- Use `pytorch_image_generation_metrics.ImageDataset` to collect images on your storage or use your custom `torch.utils.data.Dataset`.
+1. Use `pytorch_image_generation_metrics.ImageDataset` to collect images from your storage or use your custom `torch.utils.data.Dataset`.
     ```python
     from pytorch_image_generation_metrics import ImageDataset
+    from torch.utils.data import DataLoader
 
     dataset = ImageDataset(path_to_dir, exts=['png', 'jpg'])
     loader = DataLoader(dataset, batch_size=50, num_workers=4)
     ```
 
-- It is possible to wrap a generative model in a dataset to support generating images on the fly. Remember to set `num_workers=0` to avoid copying models across multiprocess.
+    You can wrap a generative model in a dataset to support generating images on the fly.
     ```python
     class GeneratorDataset(Dataset):
-        def __init__(self, G, z_dim):
+        def __init__(self, G, noise_dim):
             self.G = G
-            self.z_dim = z_dim
+            self.noise_dim = noise_dim
 
         def __len__(self):
             return 50000
 
         def __getitem__(self, index):
-            return self.G(torch.randn(1, self.z_dim).cuda())[0]
+            return self.G(torch.randn(1, self.noise_dim))
 
-    dataset = GeneratorDataset(G, z=128)
+    dataset = GeneratorDataset(G, noise_dim=128)
     loader = DataLoader(dataset, batch_size=50, num_workers=0)
     ```
 
-- Calculate metrics
+2. Calculate metrics
     ```python
-    from pytorch_image_generation_metrics import (get_inception_score,
-                                     get_fid,
-                                     get_inception_score_and_fid)
+    from pytorch_image_generation_metrics import (
+        get_inception_score,
+        get_fid,
+        get_inception_score_and_fid
+    )
+
     # Inception Score
     IS, IS_std = get_inception_score(
         loader)
+
     # Frechet Inception Distance
     FID = get_fid(
         loader, 'path/to/fid_ref.npz')
+
     # Inception Score & Frechet Inception Distance
     (IS, IS_std), FID = get_inception_score_and_fid(
         loader, 'path/to/fid_ref.npz')
@@ -139,18 +149,15 @@ The results are slightly different from official implementations due to the fram
         'path/to/images', 'path/to/fid_ref.npz')
     ```
 
-### Accelerating Matrix Computation by PyTorch
+### Accelerating Matrix Computation with PyTorch
 
-- Set `use_torch=True` when calling functions `get_*` such as `get_inception_score`, `get_fid`, etc.
+- Set `use_torch=True` when calling functions like `get_inception_score`, `get_fid`, etc.
 
-- **WARNING** when `use_torch=True` is used, the FID might be `nan` due to the unstable implementation of matrix sqrt.
-
-- This option is recommended for evaluating generative models on a server equipped with high-efficiency GPUs while the CPU is low-efficiency.
+- **WARNING**: when `use_torch=True` is used, the FID might be `nan` due to the unstable implementation of matrix sqrt root.
 
 ## Tested Versions
-- `python 3.9 + torch 1.8.2 + CUDA 10.2`
-- `python 3.9 + torch 1.11.0 + CUDA 10.2`
-- `python 3.9 + torch 1.12.1 + CUDA 10.2`
+- `python 3.9 + torch 1.13.1 + CUDA 11.7`
+- `python 3.9 + torch 2.3.0 + CUDA 12.1`
 
 ## License
 
